@@ -1,0 +1,11 @@
+server:
+  port: 8093
+
+spring:
+  application:
+    name: bff-oem
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: dev

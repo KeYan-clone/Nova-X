@@ -1,0 +1,636 @@
+# Nova-X 全球智能能源基础设施平台
+
+## 项目概述
+Nova-X (星云) 是一个全球领先的能源互联网中枢系统，通过数字化手段连接碎片化的新能源资产（充电桩、储能电站、分布式光伏），实现能源在生产、存储与消耗环节的高效调度。
+
+### 核心价值
+- 打破能源孤岛，实现电网负荷平衡
+- 提升绿色能源利用率，构建可自我修复、智能预测的全球补能网络
+- 支持 Web、小程序、APP 三端一致的用户体验
+- 为 C端用户、运营商、OEM、电力供应商、平台管理方提供差异化服务
+
+### 架构特点
+- **微服务架构** - 基于 Spring Boot + Spring Cloud 构建
+- **高可用** - SLA 99.99%，异地多活部署
+- **高性能** - 核心链路 ≥ 50,000 TPS，IoT 指令延迟 ≤ 500ms
+- **安全合规** - PCI DSS、TLS 1.3、OAuth2、RBAC
+- **可扩展** - 事件驱动、分库分表、弹性伸缩
+
+## 项目文档
+- 📖 [项目背景书](docs/项目背景书.md) - 行业痛点、业务生态、核心挑战
+- 📋 [需求描述文档](docs/需求描述文档.md) - 三端功能需求、非功能需求
+- 🏗️ [架构设计文档](docs/架构设计文档.md) - 整体架构、模块设计、技术选型
+- 💾 [数据设计文档](docs/数据设计文档.md) - 分片策略、缓存设计、数据生命周期
+- 🔌 [接口设计文档](docs/接口设计文档.md) - API 规范、鉴权、实时通道
+
+## 项目结构
+
+```
+Nova-X/
+├── docs/                           # 📚 项目文档
+│   ├── 项目背景书.md
+│   ├── 需求描述文档.md
+│   ├── 架构设计文档.md
+│   ├── 数据设计文档.md
+│   └── 接口设计文档.md
+│
+├── backend/                        # 🔧 后端服务（Java 微服务）
+│   ├── README.md                   # 后端详细说明
+│   ├── PROJECT_STRUCTURE.md        # 后端项目结构
+│   ├── pom.xml                     # Maven 父配置
+│   ├── docker-compose.yml          # 本地开发环境
+│   │
+│   ├── gateway-service/            # API 网关
+│   ├── bff/                        # BFF 层（5个服务）
+│   ├── services/                   # 核心业务服务（15个服务）
+│   ├── algorithm/                  # 算法服务
+│   ├── data/                       # 数据服务
+│   └── common/                     # 公共模块
+│
+├── frontend/                       # 🎨 前端（待创建）
+│   ├── web-consumer/               # C端用户 Web
+│   ├── web-operator/               # 运营商后台
+│   ├── web-admin/                  # 平台管理后台
+│   ├── miniprogram/                # 小程序（微信/支付宝/抖音）
+│   └── mobile-app/                 # APP（iOS/Android）
+│
+├── iot/                            # 📡 IoT 相关（待创建）
+│   ├── protocol-adapters/          # 协议适配器（OCPP/GB/T）
+│   ├── edge-services/              # 边缘服务
+│   └── device-simulators/          # 设备模拟器
+│
+├── deployment/                     # 🚀 部署配置（待创建）
+│   ├── kubernetes/                 # K8s 配置
+│   ├── terraform/                  # 基础设施即代码
+│   └── ansible/                    # 自动化运维
+│
+└── scripts/                        # 🛠️ 工具脚本
+    ├── db/                         # 数据库脚本
+    └── deploy/                     # 部署脚本
+```
+
+## 技术栈
+
+### 后端（Java 微服务）
+- **开发语言** - Java 21
+- **核心框架** - Spring Boot 3.5.x, Spring Cloud 2025.x
+- **服务注册** - Nacos Discovery
+- **配置中心** - Nacos Config
+- **API 网关** - Spring Cloud Gateway
+- **ORM 框架** - MyBatis Plus
+- **数据库** - MySQL 8.0 / PostgreSQL 15+ (分库分表 ShardingSphere)
+- **缓存** - Redis Cluster + Redisson
+- **时序数据库** - InfluxDB 2.x / TimescaleDB
+- **消息队列** - Apache Kafka 3.x / RocketMQ 5.x
+- **搜索引擎** - Elasticsearch 8.x
+- **文档存储** - MongoDB 6.x
+- **对象存储** - MinIO / AWS S3
+- **分布式事务** - Seata
+- **限流熔断** - Sentinel
+- **监控** - Prometheus + Grafana
+- **链路追踪** - SkyWalking / Jaeger
+- **日志** - ELK Stack (Elasticsearch + Logstash + Kibana)
+- **容器编排** - Kubernetes + Istio
+
+### 前端（多端）
+- **Web** - React 18 / Vue 3 + TypeScript
+  - 微前端框架：qiankun / Module Federation
+  - UI 组件库：Ant Design / Element Plus
+  - 状态管理：Redux Toolkit / Pinia
+  - 数据可视化：ECharts / D3.js
+  - 地图：Mapbox / Leaflet
+- **小程序** - Taro / uni-app (统一多端)
+  - 微信小程序、支付宝小程序、抖音小程序、百度小程序
+- **APP** - Flutter / React Native
+  - 热更新：CodePush
+  - 推送：Firebase / JPush / 个推
+
+### IoT 层
+- **协议支持** - OCPP 1.6/2.0, GB/T 27930, MQTT, CoAP
+- **边缘计算** - EdgeX Foundry / K3s
+- **设备影子** - AWS IoT Device Shadow / 自研
+
+### 数据层
+- **数据湖** - HDFS / AWS S3
+- **数据仓库** - Hive / ClickHouse
+- **实时计算** - Apache Flink
+- **离线计算** - Apache Spark
+- **机器学习** - TensorFlow / PyTorch (负荷预测、路径规划)
+
+### 运维
+- **CI/CD** - Jenkins / GitLab CI / GitHub Actions
+- **基础设施即代码** - Terraform
+- **配置管理** - Ansible
+- **容器镜像仓库** - Harbor
+- **制品库** - Nexus / Artifactory
+
+## 后端服务架构
+
+### 🌐 基础设施层
+- **gateway-service** - API 网关（鉴权、限流、路由、灰度、协议转换）
+- **config-service** - 配置中心（基于 Nacos Config）
+- **registry-service** - 服务注册中心（基于 Nacos Discovery）
+
+### 🎯 BFF 层（Backend For Frontend）
+按终端和角色拆分，提供差异化的接口聚合：
+- **bff-consumer** - C端用户 BFF（APP/小程序）
+- **bff-operator** - 运营商 BFF（Web后台）
+- **bff-oem** - 设备制造商 BFF（Web后台）
+- **bff-utility** - 电力供应商 BFF（Web后台）
+- **bff-admin** - 平台管理 BFF（Web后台）
+
+### 💼 核心业务服务（15个微服务）
+
+#### 用户与权限
+- **account-service** - 账户与权限（用户、组织、角色、RBAC、MFA、审计日志）
+
+#### 资产管理
+- **station-service** - 站点管理（站点信息、地理位置、设施信息）
+- **device-service** - 设备管理（充电桩、枪口、设备状态、OTA 升级）
+- **iot-gateway-service** - IoT 接入网关（OCPP/GB/T 协议适配、设备影子、指令下发）
+
+#### 充电业务
+- **session-service** - 充电会话（订单创建、会话生命周期、状态机、异常补偿）
+- **billing-service** - 计费服务（实时计价、分时定价、电量统计）
+- **settlement-service** - 清结算（多方分账、对账、发票、税务）
+- **payment-service** - 支付网关（微信/支付宝/银行卡、预授权、退款、对账）
+- **pricing-service** - 定价策略（动态定价、峰谷平、促销活动、优惠券）
+
+#### 智能调度
+- **scheduling-service** - 调度服务（有序充电、功率分配、负荷均衡）
+- **dr-vpp-service** - 需求响应与虚拟电厂（DR 指令执行、VPP 聚合、竞价交易、补偿计算）
+
+#### 用户运营
+- **member-service** - 会员与积分（会员等级、积分体系、优惠券、营销活动）
+
+#### 系统支撑
+- **notification-service** - 通知中心（短信、邮件、Push、站内信、模板管理）
+- **work-order-service** - 工单与运维（告警、工单流转、巡检计划、备件管理）
+- **report-service** - 报表与 BI（数据聚合、报表生成、订阅推送、数据导出）
+
+### 🧠 算法服务
+- **algorithm-service** - 算法引擎（负荷预测、拥堵预测、路径规划、功率优化、异常检测）
+
+### 📊 数据服务
+- **data-sync-service** - 数据同步（Binlog 监听、CDC、数据湖同步、冷热分层）
+- **search-service** - 搜索服务（基于 Elasticsearch，站点搜索、日志检索、全文搜索）
+
+### 📦 公共模块（Common）
+- **common-core** - 核心工具（统一响应、异常处理、常量、枚举）
+- **common-security** - 安全模块（JWT、OAuth2、加密解密、签名验证）
+- **common-redis** - Redis 工具（分布式锁、缓存注解、序列化）
+- **common-mybatis** - MyBatis 配置（分页插件、字段填充、乐观锁）
+- **common-kafka** - Kafka 工具（生产者、消费者、事务消息）
+- **common-log** - 日志工具（TraceID、访问日志、操作日志）
+- **common-swagger** - API 文档（SpringDoc、接口注解）
+
+## 核心业务流程
+
+### 1. 用户充电流程（端到端 < 500ms）
+```
+用户 → APP扫码 → BFF → 鉴权 → 预扣费 → 订单创建 →
+调度计算 → IoT网关 → 充电桩启动 → 状态回传 → 实时监控 →
+停止充电 → 计费封账 → 分账结算 → 推送通知 → 用户评价
+```
+
+### 2. 需求响应流程（DR）
+```
+电力供应商 → 监测负荷 → 创建DR指令 → 选择区域 → 下发限制 →
+平台接收 → 调度执行 → 功率调整 → 实时监控 → 评估补偿 → 结算分账
+```
+
+### 3. 智能调度流程
+```
+设备上报状态 → 负荷预测 → 功率分配计算 → 有序充电策略 →
+指令下发 → 实时调整 → 效果评估 → 策略优化
+```
+
+## 数据架构
+
+### 分库分表策略
+- **订单/会话表** - 按地域（国家/大区）+ 时间（月/季度）分片
+- **设备状态表** - 按设备 ID 分片，水平扩展
+- **时序数据** - 使用 InfluxDB，按时间窗口分片，热数据 7 天
+
+### 缓存设计
+```
+Redis Cluster 架构
+├── Session 缓存（TTL 2小时）
+├── 站点快照（TTL 10秒）
+├── 价格策略（TTL 30分钟）
+├── Token 缓存（TTL 24小时）
+└── 热点保护（本地缓存 + 分布式缓存）
+```
+
+### 消息队列主题
+- `order-events` - 订单事件流
+- `device-status` - 设备状态上报
+- `billing-events` - 计费事件流
+- `alarm-events` - 告警事件流
+- `dr-commands` - 需求响应指令
+
+## 性能指标
+
+### 系统级 SLA
+- **可用性** - 99.99%（年故障时间 < 52.6 分钟）
+- **并发能力** - 核心链路 ≥ 50,000 TPS
+- **响应时间** - API 网关 P95 < 100ms，P99 < 200ms
+- **IoT 指令** - 端到端延迟 ≤ 500ms
+- **数据一致性** - RPO ≤ 1 分钟，RTO ≤ 5 分钟
+
+### 接口性能
+| 接口类型     | P95 延迟 | P99 延迟 | 目标 TPS |
+| ------------ | -------- | -------- | -------- |
+| 地图找桩     | < 300ms  | < 500ms  | 10,000   |
+| 扫码启充     | < 500ms  | < 800ms  | 5,000    |
+| 充电状态查询 | < 100ms  | < 200ms  | 20,000   |
+| 支付确认     | < 2s     | < 3s     | 3,000    |
+| 数据看板     | < 1s     | < 2s     | 1,000    |
+
+### 数据处理能力
+- **设备上报频率** - 每 5 秒/次
+- **日数据处理量** - ≥ 10 亿条
+- **实时计算延迟** - < 1 秒
+- **离线报表延迟** - T+1 天
+
+## 开发规范
+
+### 代码规范
+- 遵循《阿里巴巴 Java 开发规范》
+- 使用 Lombok 简化 POJO
+- 统一异常处理（GlobalExceptionHandler）
+- RESTful API 设计（/api/v1/资源名）
+- 分层架构：Controller → Service → Manager → DAO
+
+### 数据库规范
+- **命名** - 表名/字段名：小写 + 下划线（snake_case）
+- **必备字段** - id (主键), create_time, update_time, deleted (逻辑删除)
+- **索引** - 高频查询字段建立索引，组合索引遵循最左前缀
+- **分页** - 使用 MyBatis Plus 分页插件，禁止全表扫描
+
+### 接口规范
+- **统一响应** - Result<T> 封装（code, message, data, timestamp, traceId）
+- **统一错误码** - 0 成功，40xxx 客户端错误，50xxx 服务端错误
+- **幂等设计** - 关键接口支持 Idempotency-Key
+- **签名验证** - 关键写接口要求签名（app_id + timestamp + nonce + sign）
+- **版本控制** - Header: X-API-Version
+
+### 安全规范
+- **传输加密** - HTTPS (TLS 1.3)
+- **数据加密** - 敏感字段 AES-256 加密存储
+- **认证授权** - JWT Token（用户端），OAuth2（管理端），MFA（高权限）
+- **防护** - 防 SQL 注入、XSS、CSRF；接口限流；敏感操作审计日志
+
+## 快速开始
+
+### 环境要求
+```
+- JDK 21+
+- Maven 3.8+
+- Docker 20+
+- Docker Compose 2.0+
+- Kubernetes 1.26+（生产环境）
+```
+
+### 本地开发
+
+#### 1. 启动基础设施
+```bash
+cd backend
+docker-compose up -d
+
+# 等待所有服务启动（约 2-3 分钟）
+docker-compose ps
+```
+
+启动的服务包括：
+- MySQL (3306) - 业务数据库
+- PostgreSQL (5432) - 部分业务数据库
+- Redis (6379) - 缓存
+- Nacos (8848) - 服务注册与配置中心
+- Kafka (9092) - 消息队列
+- Elasticsearch (9200) - 搜索引擎
+- InfluxDB (8086) - 时序数据库
+- MongoDB (27017) - 文档存储
+- MinIO (9000) - 对象存储
+
+#### 2. 访问 Nacos 控制台
+```
+URL: http://localhost:8848/nacos
+用户名: nacos
+密码: nacos
+```
+
+#### 3. 编译项目
+```bash
+cd backend
+mvn clean install -DskipTests
+```
+
+#### 4. 启动服务（按顺序）
+```bash
+# 1. 启动网关
+cd gateway-service
+mvn spring-boot:run
+
+# 2. 启动账户服务
+cd services/account-service
+mvn spring-boot:run
+
+# 3. 启动充电会话服务
+cd services/session-service
+mvn spring-boot:run
+
+# 4. 启动其他业务服务...
+```
+
+#### 5. 验证服务
+```bash
+# 查看 Nacos 服务列表
+curl http://localhost:8848/nacos/v1/ns/instance/list?serviceName=account-service
+
+# 测试网关
+curl http://localhost:8080/actuator/health
+
+# 测试账户服务
+curl http://localhost:8080/api/v1/account/users/1
+```
+
+### 生产部署
+
+#### 使用 Docker
+```bash
+# 构建镜像
+mvn clean package -DskipTests
+docker build -t nova-x/gateway-service:1.0.0 ./gateway-service
+
+# 推送镜像
+docker push nova-x/gateway-service:1.0.0
+
+# 运行容器
+docker run -d -p 8080:8080 \
+  -e NACOS_SERVER_ADDR=nacos:8848 \
+  nova-x/gateway-service:1.0.0
+```
+
+#### 使用 Kubernetes
+```bash
+# 创建命名空间
+kubectl create namespace nova-x
+
+# 部署配置
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/configmap.yaml
+kubectl apply -f k8s/secret.yaml
+
+# 部署服务
+kubectl apply -f k8s/gateway-service/
+kubectl apply -f k8s/services/
+
+# 查看部署状态
+kubectl get pods -n nova-x
+kubectl get svc -n nova-x
+```
+
+## 监控与运维
+
+### 监控指标
+- **系统指标** - CPU、内存、磁盘、网络
+- **JVM 指标** - 堆内存、GC 次数、线程数
+- **应用指标** - QPS/TPS、响应时间、错误率
+- **业务指标** - 充电订单数、营收、设备在线率
+- **基础设施** - 数据库连接池、缓存命中率、MQ 积压
+
+### 日志规范
+```
+应用日志：/var/log/nova-x/{service}/app.log
+访问日志：/var/log/nova-x/{service}/access.log
+错误日志：/var/log/nova-x/{service}/error.log
+
+日志格式：[timestamp] [level] [traceId] [service] [class] - message
+```
+
+### 告警策略
+| 级别 | 触发条件                         | 通知方式               | 响应时间 |
+| ---- | -------------------------------- | ---------------------- | -------- |
+| P0   | 服务不可用、核心接口失败率 > 10% | 电话 + 短信 + 企业微信 | 5 分钟   |
+| P1   | 接口响应超时、数据库连接池耗尽   | 短信 + 企业微信        | 15 分钟  |
+| P2   | 缓存失效、MQ 积压                | 企业微信 + 邮件        | 30 分钟  |
+| P3   | 资源使用率 > 80%                 | 邮件                   | 1 小时   |
+
+### 故障演练
+- **服务降级演练** - 每月 1 次
+- **数据中心切换演练** - 每季度 1 次
+- **全链路压测** - 每半年 1 次
+- **应急预案演练** - 每年 2 次
+
+## 版本历史
+
+### v1.0.0 (2026-01-20) - MVP 版本
+**功能**
+- ✅ 核心充电流程（找桩、扫码、启充、停充、支付）
+- ✅ 基础账户体系（注册、登录、实名认证）
+- ✅ OCPP 1.6 协议接入
+- ✅ 微信/支付宝支付
+- ✅ 基础站点/设备管理
+- ✅ 运营商后台（设备监控、基础报表）
+
+**基础设施**
+- ✅ 微服务架构（Spring Cloud）
+- ✅ 服务注册（Nacos）
+- ✅ API 网关（Spring Cloud Gateway）
+- ✅ 数据库（MySQL + Redis）
+- ✅ 消息队列（Kafka）
+- ✅ 容器化（Docker）
+
+### v1.1.0 (计划 2026-Q2) - 功能增强
+- 智能推荐与路径规划
+- 动态定价与促销系统
+- 会员体系与积分
+- 运营数据看板
+- OEM 管理后台
+- 多协议支持（GB/T, OCPP 2.0）
+
+### v2.0.0 (计划 2026-Q3) - 智能调度
+- 有序充电算法
+- 需求响应系统（DR）
+- 虚拟电厂聚合（VPP）
+- 负荷预测模型
+- 电力供应商管理后台
+
+### v3.0.0 (计划 2026-Q4) - 全球化
+- 多语言支持（中英日韩德法）
+- 多币种支持
+- 异地多活部署
+- 性能优化与安全加固
+- 运营增长工具
+
+## 贡献指南
+
+### 分支策略
+- `main` - 生产环境代码
+- `develop` - 开发主分支
+- `feature/*` - 功能分支
+- `hotfix/*` - 紧急修复分支
+- `release/*` - 发布分支
+
+### 提交规范
+```
+feat: 新功能
+fix: 修复 Bug
+docs: 文档更新
+style: 代码格式调整
+refactor: 重构
+perf: 性能优化
+test: 测试用例
+chore: 构建/工具链更新
+```
+
+### Code Review 要求
+- 所有代码必须经过 Code Review
+- 至少 2 人 Approve 才能合并
+- 必须通过所有自动化测试
+- 代码覆盖率不低于 80%
+
+## 联系方式
+- **项目负责人** - Nova-X Team
+- **技术支持** - tech-support@nova-x.com
+- **文档站点** - https://docs.nova-x.com
+- **问题反馈** - GitHub Issues
+
+## 许可证
+```
+│   ├── station-service/
+│   ├── device-service/
+│   ├── iot-gateway-service/
+│   ├── session-service/
+│   ├── billing-service/
+│   ├── settlement-service/
+│   ├── payment-service/
+│   ├── pricing-service/
+│   ├── scheduling-service/
+│   ├── dr-vpp-service/
+│   ├── member-service/
+│   ├── notification-service/
+│   ├── work-order-service/
+│   └── report-service/
+│
+├── algorithm/                      # 算法服务
+│   └── algorithm-service/
+│
+├── data/                          # 数据服务
+│   ├── data-sync-service/
+│   └── search-service/
+│
+└── common/                        # 公共模块
+    ├── common-core/
+    ├── common-security/
+    ├── common-redis/
+    ├── common-mybatis/
+    ├── common-kafka/
+    ├── common-log/
+    └── common-swagger/
+```
+
+## 开发规范
+
+### 代码规范
+- 遵循阿里巴巴 Java 开发规范
+- 使用 Lombok 简化代码
+- 统一异常处理
+- RESTful API 设计规范
+- 接口版本控制：/api/v1
+
+### 数据库规范
+- 表名：小写 + 下划线
+- 字段名：小写 + 下划线
+- 必备字段：id, create_time, update_time, deleted
+- 分库分表：按地域 + 时间维度
+
+### 接口规范
+- 统一响应格式：Result<T>
+- 统一错误码
+- 幂等性设计
+- 签名验证
+- 请求日志记录
+
+### 安全规范
+- 敏感数据加密存储
+- 传输层 TLS 1.3
+- JWT Token 认证
+- OAuth2 授权
+- 防 SQL 注入
+- 防 XSS 攻击
+
+## 快速开始
+
+### 环境要求
+- JDK 21+
+- Maven 3.8+
+- Docker 20+
+- Kubernetes 1.26+（生产环境）
+
+### 本地开发
+```bash
+# 启动基础设施（MySQL、Redis、Kafka、Nacos 等）
+docker-compose up -d
+
+# 编译项目
+mvn clean install -DskipTests
+
+# 启动网关
+cd gateway-service && mvn spring-boot:run
+
+# 启动业务服务
+cd services/account-service && mvn spring-boot:run
+```
+
+### 部署
+```bash
+# 构建镜像
+mvn clean package -DskipTests
+docker build -t nova-x/gateway-service:latest ./gateway-service
+
+# 部署到 K8s
+kubectl apply -f k8s/
+```
+
+## 监控与运维
+
+### 监控指标
+- QPS/TPS
+- 响应时间（P95/P99）
+- 错误率
+- 服务健康度
+- 数据库连接池
+- 缓存命中率
+- 消息队列积压
+
+### 日志
+- 应用日志：/var/log/nova-x/{service}/app.log
+- 访问日志：/var/log/nova-x/{service}/access.log
+- 错误日志：/var/log/nova-x/{service}/error.log
+
+### 告警
+- 服务不可用
+- 接口响应超时
+- 数据库连接池耗尽
+- 消息队列积压
+- 缓存失效
+
+## 性能指标
+- API 网关：≥ 50,000 TPS
+- 核心业务接口：P95 延迟 ≤ 100ms
+- IoT 指令下发：端到端延迟 ≤ 500ms
+- 数据库查询：≤ 100ms
+- 缓存查询：≤ 10ms
+
+## 版本历史
+- v1.0.0 (2026-01-20): MVP 版本，核心充电流程
+- v1.1.0 (计划): 智能推荐、动态定价
+- v2.0.0 (计划): 智能调度、DR/VPP
+- v3.0.0 (计划): 全球化、多语言
+
+## 联系方式
+- 项目负责人：Nova-X Team
+- 技术支持：tech-support@nova-x.com

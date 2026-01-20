@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: novax-config
+  namespace: novax
+data:
+  nacos.server-addr: "nacos-service.novax.svc.cluster.local:8848"
+  mysql.host: "mysql-service.novax.svc.cluster.local"
+  redis.host: "redis-service.novax.svc.cluster.local"
+  kafka.bootstrap-servers: "kafka-service.novax.svc.cluster.local:9092"
