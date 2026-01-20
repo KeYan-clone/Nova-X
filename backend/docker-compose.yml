@@ -1,0 +1,220 @@
+version: '3.8'
+
+services:
+  # 关系型数据库 - MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: nova-x-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: novax
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./scripts/sql:/docker-entrypoint-initdb.d
+    networks:
+      - nova-x-network
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+
+  # 关系型数据库 - PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: nova-x-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: novax
+      TZ: Asia/Shanghai
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - nova-x-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      timeout: 20s
+      retries: 10
+
+  # 缓存 - Redis
+  redis:
+    image: redis:7-alpine
+    container_name: nova-x-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - nova-x-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      timeout: 20s
+      retries: 10
+
+  # 服务注册与配置中心 - Nacos
+  nacos:
+    image: nacos/nacos-server:v2.3.0
+    container_name: nova-x-nacos
+    environment:
+      MODE: standalone
+      SPRING_DATASOURCE_PLATFORM: mysql
+      MYSQL_SERVICE_HOST: mysql
+      MYSQL_SERVICE_PORT: 3306
+      MYSQL_SERVICE_USER: root
+      MYSQL_SERVICE_PASSWORD: password
+      MYSQL_SERVICE_DB_NAME: nacos_config
+      NACOS_AUTH_ENABLE: "true"
+      NACOS_AUTH_TOKEN_EXPIRE_SECONDS: 18000
+      NACOS_AUTH_TOKEN: "SecureNavcosToken"
+      TZ: Asia/Shanghai
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - nacos_logs:/home/nacos/logs
+    networks:
+      - nova-x-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8848/nacos/v1/console/health/readiness" ]
+      timeout: 20s
+      retries: 10
+
+  # 消息队列 - Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: nova-x-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      TZ: Asia/Shanghai
+    ports:
+      - "2181:2181"
+    networks:
+      - nova-x-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: nova-x-kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      TZ: Asia/Shanghai
+    ports:
+      - "9092:9092"
+    networks:
+      - nova-x-network
+    healthcheck:
+      test: [ "CMD", "kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092" ]
+      timeout: 20s
+      retries: 10
+
+  # 搜索引擎 - Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.0
+    container_name: nova-x-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - TZ=Asia/Shanghai
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - nova-x-network
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"' || exit 1" ]
+      timeout: 20s
+      retries: 10
+
+  # 时序数据库 - InfluxDB
+  influxdb:
+    image: influxdb:2.7
+    container_name: nova-x-influxdb
+    environment:
+      INFLUXDB_DB: novax
+      INFLUXDB_ADMIN_USER: admin
+      INFLUXDB_ADMIN_PASSWORD: password
+      INFLUXDB_HTTP_AUTH_ENABLED: "true"
+      TZ: Asia/Shanghai
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    networks:
+      - nova-x-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8086/health" ]
+      timeout: 20s
+      retries: 10
+
+  # 文档存储 - MongoDB
+  mongodb:
+    image: mongo:6.0
+    container_name: nova-x-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: novax
+      TZ: Asia/Shanghai
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - nova-x-network
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      timeout: 20s
+      retries: 10
+
+  # 对象存储 - MinIO
+  minio:
+    image: minio/minio:latest
+    container_name: nova-x-minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      TZ: Asia/Shanghai
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/minio_data
+    command: server /minio_data --console-address ":9001"
+    networks:
+      - nova-x-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      timeout: 20s
+      retries: 10
+
+networks:
+  nova-x-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  postgres_data:
+  redis_data:
+  nacos_logs:
+  elasticsearch_data:
+  influxdb_data:
+  mongodb_data:
+  minio_data:

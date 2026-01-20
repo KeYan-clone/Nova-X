@@ -93,7 +93,7 @@ Nova-X/
 - **容器编排** - Kubernetes + Istio
 
 ### 前端（多端）
-- **Web** - React 18 / Vue 3 + TypeScript
+- **Web** -  Vue 3 + TypeScript
   - 微前端框架：qiankun / Module Federation
   - UI 组件库：Ant Design / Element Plus
   - 状态管理：Redux Toolkit / Pinia
@@ -127,9 +127,10 @@ Nova-X/
 ## 后端服务架构
 
 ### 🌐 基础设施层
-- **gateway-service** - API 网关（鉴权、限流、路由、灰度、协议转换）
-- **config-service** - 配置中心（基于 Nacos Config）
-- **registry-service** - 服务注册中心（基于 Nacos Discovery）
+- **gateway-service** - API 网关（入口路由、鉴权、限流、灰度、协议转换）
+- **auth-service** - 认证授权中心（Token 签发、OAuth2 服务端、用户认证、会话管理）
+- **monitor-service** - 指标监控告警（Prometheus 采集、实时告警、性能指标、健康检查）
+- **log-service** - 日志聚合检索（ELK 聚合、日志检索、链路追踪、事后分析）
 
 ### 🎯 BFF 层（Backend For Frontend）
 按终端和角色拆分，提供差异化的接口聚合：
@@ -146,8 +147,8 @@ Nova-X/
 
 #### 资产管理
 - **station-service** - 站点管理（站点信息、地理位置、设施信息）
-- **device-service** - 设备管理（充电桩、枪口、设备状态、OTA 升级）
-- **iot-gateway-service** - IoT 接入网关（OCPP/GB/T 协议适配、设备影子、指令下发）
+- **device-service** - 设备元数据管理（充电桩档案、型号规格、配置参数、资产信息）
+- **iot-gateway-service** - IoT 设备状态网关（实时状态上报、OCPP/GB/T 协议、设备影子、指令下发、OTA 推送）
 
 #### 充电业务
 - **session-service** - 充电会话（订单创建、会话生命周期、状态机、异常补偿）
@@ -177,11 +178,12 @@ Nova-X/
 
 ### 📦 公共模块（Common）
 - **common-core** - 核心工具（统一响应、异常处理、常量、枚举）
-- **common-security** - 安全模块（JWT、OAuth2、加密解密、签名验证）
+- **common-security** - 安全验证模块（Token 验证、签名验证、加密解密工具，不负责签发）
+- **common-bff** - BFF 公共基础（认证拦截器、参数验证、响应封装、通用聚合逻辑）
 - **common-redis** - Redis 工具（分布式锁、缓存注解、序列化）
 - **common-mybatis** - MyBatis 配置（分页插件、字段填充、乐观锁）
 - **common-kafka** - Kafka 工具（生产者、消费者、事务消息）
-- **common-log** - 日志工具（TraceID、访问日志、操作日志）
+- **common-log** - 日志采集端（TraceID 生成、操作日志切面、访问日志拦截器，不负责聚合）
 - **common-swagger** - API 文档（SpringDoc、接口注解）
 
 ## 核心业务流程
@@ -222,12 +224,16 @@ Redis Cluster 架构
 └── 热点保护（本地缓存 + 分布式缓存）
 ```
 
-### 消息队列主题
-- `order-events` - 订单事件流
-- `device-status` - 设备状态上报
-- `billing-events` - 计费事件流
-- `alarm-events` - 告警事件流
-- `dr-commands` - 需求响应指令
+### 消息队列主题（事件驱动架构）
+- `account-events` - 账户事件流（注册、认证、权限变更）
+- `device-events` - 设备事件流（设备上线、离线、故障、配置变更）
+- `session-events` - 充电会话事件流（启动、停止、异常、完成）
+- `billing-events` - 计费事件流（实时计费、账单生成）
+- `payment-events` - 支付事件流（支付成功、失败、退款）
+- `settlement-events` - 结算事件流（对账、清算、分账）
+- `alarm-events` - 告警事件流（设备告警、系统告警）
+- `dr-commands` - 需求响应指令（DR 下发、执行结果）
+- `notification-events` - 通知事件流（短信、Push、邮件）
 
 ## 性能指标
 
@@ -497,40 +503,6 @@ chore: 构建/工具链更新
 - **技术支持** - tech-support@nova-x.com
 - **文档站点** - https://docs.nova-x.com
 - **问题反馈** - GitHub Issues
-
-## 许可证
-```
-│   ├── station-service/
-│   ├── device-service/
-│   ├── iot-gateway-service/
-│   ├── session-service/
-│   ├── billing-service/
-│   ├── settlement-service/
-│   ├── payment-service/
-│   ├── pricing-service/
-│   ├── scheduling-service/
-│   ├── dr-vpp-service/
-│   ├── member-service/
-│   ├── notification-service/
-│   ├── work-order-service/
-│   └── report-service/
-│
-├── algorithm/                      # 算法服务
-│   └── algorithm-service/
-│
-├── data/                          # 数据服务
-│   ├── data-sync-service/
-│   └── search-service/
-│
-└── common/                        # 公共模块
-    ├── common-core/
-    ├── common-security/
-    ├── common-redis/
-    ├── common-mybatis/
-    ├── common-kafka/
-    ├── common-log/
-    └── common-swagger/
-```
 
 ## 开发规范
 

@@ -1,0 +1,11 @@
+server:
+  port: 8105
+
+spring:
+  application:
+    name: log-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: dev

@@ -1,0 +1,11 @@
+server:
+  port: 8104
+
+spring:
+  application:
+    name: monitor-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: dev
