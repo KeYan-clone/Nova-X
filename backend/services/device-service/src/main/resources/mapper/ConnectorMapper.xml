@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.novax.device.mapper.ConnectorMapper">
+
+    <resultMap id="BaseResultMap" type="com.novax.device.entity.Connector">
+        <id column="id" property="id"/>
+        <result column="connector_code" property="connectorCode"/>
+        <result column="device_id" property="deviceId"/>
+        <result column="connector_no" property="connectorNo"/>
+        <result column="connector_type" property="connectorType"/>
+        <result column="connector_status" property="connectorStatus"/>
+        <result column="max_power" property="maxPower"/>
+        <result column="max_voltage" property="maxVoltage"/>
+        <result column="max_current" property="maxCurrent"/>
+        <result column="current_session_id" property="currentSessionId"/>
+        <result column="total_charging_count" property="totalChargingCount"/>
+        <result column="total_charging_energy" property="totalChargingEnergy"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <select id="findByDeviceId" resultMap="BaseResultMap">
+        SELECT * FROM connector
+        WHERE device_id = #{deviceId}
+        AND deleted = 0
+        ORDER BY connector_no ASC
+    </select>
+
+    <select id="findByStatus" resultMap="BaseResultMap">
+        SELECT * FROM connector
+        WHERE connector_status = #{connectorStatus}
+        AND deleted = 0
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>

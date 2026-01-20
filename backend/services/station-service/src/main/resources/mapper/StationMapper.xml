@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.novax.station.mapper.StationMapper">
+
+    <!-- 查询附近的充电站 -->
+    <select id="findNearbyStations" resultType="com.novax.station.domain.entity.Station">
+        SELECT
+            *,
+            (
+                6371 * ACOS(
+                    COS(RADIANS(#{latitude})) * COS(RADIANS(latitude))
+                    * COS(RADIANS(longitude) - RADIANS(#{longitude}))
+                    + SIN(RADIANS(#{latitude})) * SIN(RADIANS(latitude))
+                )
+            ) AS distance
+        FROM station
+        WHERE deleted = 0
+        <if test="stationType != null and stationType != ''">
+            AND station_type = #{stationType}
+        </if>
+        <if test="onlyAvailable != null and onlyAvailable == true">
+            AND station_status = 'NORMAL'
+            AND available_connectors > 0
+        </if>
+        HAVING distance &lt;= #{radius}
+        ORDER BY distance ASC
+    </select>
+
+</mapper>

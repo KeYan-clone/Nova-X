@@ -1,0 +1,207 @@
+server:
+  port: 9000
+
+spring:
+  application:
+    name: gateway-service
+
+  # Redis配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      database: 0
+      timeout: 3000ms
+
+  # Nacos配置
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: dev
+        group: DEFAULT_GROUP
+      config:
+        server-addr: localhost:8848
+        namespace: dev
+        group: DEFAULT_GROUP
+        file-extension: yml
+
+    # Gateway路由配置
+    gateway:
+      # 路由规则
+      routes:
+        # 认证服务路由
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - StripPrefix=0
+
+        # 账户服务路由
+        - id: account-service
+          uri: lb://account-service
+          predicates:
+            - Path=/api/v1/users/**
+          filters:
+            - StripPrefix=0
+
+        # 站点服务路由
+        - id: station-service
+          uri: lb://station-service
+          predicates:
+            - Path=/api/v1/stations/**
+          filters:
+            - StripPrefix=0
+
+        # 设备服务路由
+        - id: device-service
+          uri: lb://device-service
+          predicates:
+            - Path=/api/v1/devices/**,/api/v1/connectors/**
+          filters:
+            - StripPrefix=0
+
+        # 会话服务路由
+        - id: session-service
+          uri: lb://session-service
+          predicates:
+            - Path=/api/v1/sessions/**,/api/v1/charging/**
+          filters:
+            - StripPrefix=0
+
+        # 计费服务路由
+        - id: billing-service
+          uri: lb://billing-service
+          predicates:
+            - Path=/api/v1/billing/**
+          filters:
+            - StripPrefix=0
+
+        # 支付服务路由
+        - id: payment-service
+          uri: lb://payment-service
+          predicates:
+            - Path=/api/v1/payments/**
+          filters:
+            - StripPrefix=0
+
+        # 定价服务路由
+        - id: pricing-service
+          uri: lb://pricing-service
+          predicates:
+            - Path=/api/v1/pricing/**
+          filters:
+            - StripPrefix=0
+
+        # 会员服务路由
+        - id: member-service
+          uri: lb://member-service
+          predicates:
+            - Path=/api/v1/members/**,/api/v1/vip/**
+          filters:
+            - StripPrefix=0
+
+        # 工单服务路由
+        - id: work-order-service
+          uri: lb://work-order-service
+          predicates:
+            - Path=/api/v1/work-orders/**
+          filters:
+            - StripPrefix=0
+
+        # 通知服务路由
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/v1/notifications/**,/api/v1/messages/**
+          filters:
+            - StripPrefix=0
+
+        # 调度服务路由
+        - id: scheduling-service
+          uri: lb://scheduling-service
+          predicates:
+            - Path=/api/v1/scheduling/**
+          filters:
+            - StripPrefix=0
+
+        # DR/VPP服务路由
+        - id: dr-vpp-service
+          uri: lb://dr-vpp-service
+          predicates:
+            - Path=/api/v1/dr/**,/api/v1/vpp/**
+          filters:
+            - StripPrefix=0
+
+        # 报表服务路由
+        - id: report-service
+          uri: lb://report-service
+          predicates:
+            - Path=/api/v1/reports/**
+          filters:
+            - StripPrefix=0
+
+        # 清结算服务路由
+        - id: settlement-service
+          uri: lb://settlement-service
+          predicates:
+            - Path=/api/v1/settlements/**
+          filters:
+            - StripPrefix=0
+
+      # 全局配置
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origins: "*"
+            allowed-methods: "*"
+            allowed-headers: "*"
+            allow-credentials: true
+            max-age: 3600
+
+      # 服务发现配置
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+# Sentinel配置
+spring:
+  cloud:
+    sentinel:
+      transport:
+        dashboard: localhost:8858
+        port: 8719
+      # 关闭Sentinel控制台心跳
+      eager: true
+      # 网关限流
+      scg:
+        fallback:
+          mode: response
+          response-status: 429
+          response-body: '{"code":429,"message":"请求过于频繁，请稍后重试"}'
+
+# JWT配置
+jwt:
+  secret: novax-charging-platform-secret-key-2026
+  expiration: 7200
+
+# 日志配置
+logging:
+  level:
+    com.novax: debug
+    org.springframework.cloud.gateway: debug
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n"
+
+# 管理端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always

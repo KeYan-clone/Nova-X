@@ -1,27 +1,122 @@
-# Nova-X 全球智能能源基础设施平台
+# Nova-X 充电桩管理平台 🚗⚡
 
-## 项目概述
-Nova-X (星云) 是一个全球领先的能源互联网中枢系统，通过数字化手段连接碎片化的新能源资产（充电桩、储能电站、分布式光伏），实现能源在生产、存储与消耗环节的高效调度。
+> 新能源汽车充电桩智能管理系统 - 基于Spring Cloud微服务架构
 
-### 核心价值
-- 打破能源孤岛，实现电网负荷平衡
-- 提升绿色能源利用率，构建可自我修复、智能预测的全球补能网络
-- 支持 Web、小程序、APP 三端一致的用户体验
-- 为 C端用户、运营商、OEM、电力供应商、平台管理方提供差异化服务
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.0-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2025.0.0-blue.svg)](https://spring.io/projects/spring-cloud)
+[![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Build](https://img.shields.io/badge/build-passing-success.svg)](backend)
 
-### 架构特点
-- **微服务架构** - 基于 Spring Boot + Spring Cloud 构建
-- **高可用** - SLA 99.99%，异地多活部署
+## 📋 项目简介
+
+Nova-X (星云) 是一个企业级充电桩管理平台，通过数字化手段连接充电桩、储能电站等新能源资产，实现能源在生产、存储与消耗环节的高效调度。为充电桩运营商、车主、设备厂商和电力供应商提供全方位的充电服务管理解决方案。
+
+### 🎯 核心价值
+- **能源互联** - 打破能源孤岛，实现电网负荷平衡
+- **智能调度** - 构建可自我修复、智能预测的全球补能网络
+- **多端协同** - 支持 Web、小程序、APP 三端一致的用户体验
+- **差异化服务** - 为 C端用户、运营商、OEM、电力供应商提供专属服务
+
+### ✨ 技术特色
+- **微服务架构** - 18+独立服务，基于 Spring Boot 3.5.0 + Spring Cloud 2025.0.0
+- **高可用** - SLA 99.99%，支持异地多活部署
 - **高性能** - 核心链路 ≥ 50,000 TPS，IoT 指令延迟 ≤ 500ms
-- **安全合规** - PCI DSS、TLS 1.3、OAuth2、RBAC
-- **可扩展** - 事件驱动、分库分表、弹性伸缩
+- **安全合规** - JWT认证、TLS 1.3、OAuth2、RBAC权限控制
+- **地理搜索** - Haversine公式实现附近站点精准搜索
+- **分时电价** - 智能分时定价，支持尖峰平谷策略
+- **统一网关** - Spring Cloud Gateway集中认证和流量管理
+- **服务治理** - Nacos服务发现、Sentinel限流熔断
+- **分布式追踪** - TraceId全链路追踪，问题快速定位
 
-## 项目文档
+## 🏗️ 系统架构
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                         Frontend Layer                            │
+│  (用户端 | 运营商端 | 管理后台 | OEM端 | 电力供应商端)             │
+└──────────────────────────────────────────────────────────────────┘
+                              ↓
+┌──────────────────────────────────────────────────────────────────┐
+│                      API Gateway (9000) ✅                        │
+│  JWT认证 | 路由转发 | 限流熔断 | 链路追踪 | 跨域处理              │
+└──────────────────────────────────────────────────────────────────┘
+                              ↓
+┌────────────────────┬────────────────────┬─────────────────────────┐
+│  Infrastructure    │  Business Layer    │   Data Layer            │
+├────────────────────┼────────────────────┼─────────────────────────┤
+│ Auth Service ✅    │ Account Service ✅ │ Algorithm Service ⏳    │
+│ Monitor Service ⏳ │ Station Service ✅ │ Search Service ⏳       │
+│ Log Service ⏳     │ Device Service ✅  │ Data Sync Service ⏳    │
+│                    │ Pricing Service ✅ │                         │
+│                    │ Session Service ✅ │                         │
+│                    │ Billing Service ⏳ │                         │
+│                    │ Payment Service ⏳ │                         │
+│                    │ Member Service ⏳  │                         │
+│                    │ Notification ⏳    │                         │
+│                    │ Work Order ⏳      │                         │
+│                    │ Scheduling ⏳      │                         │
+│                    │ DR/VPP Service ⏳  │                         │
+│                    │ Report Service ⏳  │                         │
+│                    │ Settlement ⏳      │                         │
+│                    │ IoT Gateway ⏳     │                         │
+└────────────────────┴────────────────────┴─────────────────────────┘
+                              ↓
+┌──────────────────────────────────────────────────────────────────┐
+│              Common Modules (公共模块层) ✅                        │
+│  Core | Security | MyBatis | Redis | Kafka | Log | Swagger       │
+└──────────────────────────────────────────────────────────────────┘
+                              ↓
+┌──────────────────────────────────────────────────────────────────┐
+│                   Infrastructure                                  │
+│  MySQL 8.0 | Redis 7.0 | Kafka 3.9 | Nacos 2.3 | Sentinel 1.8   │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**图例**: ✅ 已完成 | ⏳ 规划中
+
+## 🚀 技术栈
+
+### 后端技术
+| 技术                 | 版本       | 说明              |
+| -------------------- | ---------- | ----------------- |
+| Spring Boot          | 3.5.0      | 应用框架          |
+| Spring Cloud         | 2025.0.0   | 微服务框架        |
+| Spring Cloud Alibaba | 2023.0.3.2 | 阿里微服务组件    |
+| MyBatis Plus         | 3.5.9      | ORM框架           |
+| MySQL                | 8.0+       | 关系数据库        |
+| Redis                | 7.0+       | 缓存数据库        |
+| Kafka                | 3.9.0      | 消息队列          |
+| Nacos                | 2.3+       | 服务注册/配置中心 |
+| Sentinel             | 1.8+       | 限流熔断          |
+| JWT                  | -          | 认证授权          |
+| Swagger/Knife4j      | 4.5.0      | API文档           |
+
+### 前端技术 (规划中)
+- Vue 3.x / React 18+
+- TypeScript
+- Element Plus / Ant Design
+- ECharts (数据可视化)
+
+## 📖 项目文档
+
+### 设计文档
 - 📖 [项目背景书](docs/项目背景书.md) - 行业痛点、业务生态、核心挑战
 - 📋 [需求描述文档](docs/需求描述文档.md) - 三端功能需求、非功能需求
 - 🏗️ [架构设计文档](docs/架构设计文档.md) - 整体架构、模块设计、技术选型
 - 💾 [数据设计文档](docs/数据设计文档.md) - 分片策略、缓存设计、数据生命周期
-- 🔌 [接口设计文档](docs/接口设计文档.md) - API 规范、鉴权、实时通道
+- 🔌 [接口设计文档](docs/接口设计文档.md) - API规范、鉴权、实时通道
+- 🎯 [服务职责边界说明](docs/服务职责边界说明.md) - 服务职责划分
+
+### 开发文档
+- [后端开发指南](backend/README.md) - 后端开发详细说明
+- [项目完成报告](backend/PROJECT_COMPLETION.md) - 项目完成总结
+- [最终完成报告](backend/FINAL_COMPLETION_REPORT.md) - 详细完成报告
+- [开发进度](backend/PROGRESS.md) - 实时开发进度
+
+### API文档
+- 网关聚合文档: http://localhost:9000/doc.html
+- 各服务独立文档: http://localhost:{port}/doc.html
 
 ## 项目结构
 
@@ -34,20 +129,38 @@ Nova-X/
 │   ├── 数据设计文档.md
 │   └── 接口设计文档.md
 │
-├── backend/                        # 🔧 后端服务（Java 微服务）
+├── backend/                        # 🔧 后端服务（Spring Boot 微服务）
 │   ├── README.md                   # 后端详细说明
-│   ├── PROJECT_STRUCTURE.md        # 后端项目结构
 │   ├── pom.xml                     # Maven 父配置
 │   ├── docker-compose.yml          # 本地开发环境
 │   │
-│   ├── gateway-service/            # API 网关
-│   ├── bff/                        # BFF 层（5个服务）
-│   ├── services/                   # 核心业务服务（15个服务）
-│   ├── algorithm/                  # 算法服务
-│   ├── data/                       # 数据服务
-│   └── common/                     # 公共模块
+│   ├── common/                     # 公共模块 ✅
+│   │   ├── common-core            # 核心工具
+│   │   ├── common-security        # 安全模块
+│   │   ├── common-mybatis         # 持久层
+│   │   ├── common-redis           # 缓存
+│   │   ├── common-kafka           # 消息队列
+│   │   ├── common-log             # 日志
+│   │   └── common-swagger         # API文档
+│   │
+│   ├── infrastructure/             # 基础设施 ✅
+│   │   ├── auth-service           # 认证服务 (8080)
+│   │   └── gateway-service        # 网关服务 (9000)
+│   │
+│   ├── services/                   # 业务服务
+│   │   ├── account-service        # 账户服务 (8081) ✅
+│   │   ├── station-service        # 站点服务 (8082) ✅
+│   │   ├── device-service         # 设备服务 (8083) ✅
+│   │   ├── pricing-service        # 定价服务 (8084) ✅
+│   │   ├── session-service        # 会话服务 (8085) ✅
+│   │   ├── billing-service        # 计费服务 (8086) ⏳
+│   │   ├── payment-service        # 支付服务 (8087) ⏳
+│   │   └── ...                    # 更多服务
+│   │
+│   └── scripts/                    # 脚本文件
+│       └── sql/                    # 数据库脚本
 │
-├── frontend/                       # 🎨 前端（待创建）
+├── frontend/                       # 🎨 前端（规划中）
 │   ├── web-consumer/               # C端用户 Web
 │   ├── web-operator/               # 运营商后台
 │   ├── web-admin/                  # 平台管理后台
@@ -69,7 +182,122 @@ Nova-X/
     └── deploy/                     # 部署脚本
 ```
 
-## 技术栈
+## 📊 项目进度
+
+### ✅ 已完成 (Phase 1)
+
+**基础设施层** (2/2)
+- ✅ **auth-service** - 认证授权服务
+  - 密码登录 + 短信登录
+  - JWT双Token机制
+  - 图形验证码 + 短信验证码
+  - 登录日志审计
+
+- ✅ **gateway-service** - API网关服务
+  - 15个微服务路由配置
+  - JWT认证过滤器
+  - 分布式链路追踪(TraceId)
+  - Sentinel限流熔断
+  - 全局跨域CORS
+  - 统一异常处理
+
+**公共模块层** (7/7)
+- ✅ common-core - 统一响应、异常处理、工具类
+- ✅ common-security - JWT、加密解密、签名验证
+- ✅ common-mybatis - MyBatis Plus配置、BaseEntity
+- ✅ common-redis - Redis工具、分布式锁
+- ✅ common-kafka - Kafka生产者
+- ✅ common-log - 日志切面、TraceId
+- ✅ common-swagger - OpenAPI 3.0、Knife4j
+
+**核心业务服务** (5/16 - 核心完成)
+- ✅ **account-service** - 账户管理服务
+  - 用户注册/查询/更新
+  - 实名认证管理
+  - 角色权限管理
+
+- ✅ **station-service** - 充电站管理服务
+  - 充电站CRUD
+  - **地理位置搜索** (Haversine公式)
+  - 附近站点查询
+  - 站点状态管理
+
+- ✅ **device-service** - 设备管理服务
+  - 充电桩管理 (25+字段)
+  - 充电枪管理 (支持多枪)
+  - 设备状态监控 (5种状态)
+  - 设备上线/离线管理
+
+- ✅ **pricing-service** - 定价服务
+  - 定价模板管理
+  - **分时电价策略** (尖峰/平/谷)
+  - 电费计算引擎
+
+- ✅ **session-service** - 充电会话服务
+  - 会话管理 (启动/停止)
+  - 充电数据记录
+  - 会话状态跟踪
+
+### ⏳ 规划中 (Phase 2)
+- ⏳ billing-service - 计费服务
+- ⏳ payment-service - 支付服务
+- ⏳ member-service - 会员服务
+- ⏳ notification-service - 通知服务
+- ⏳ work-order-service - 工单服务
+- ⏳ scheduling-service - 调度服务
+- ⏳ 其他业务服务...
+
+### 📈 统计数据
+| 指标       | 数量     | 状态          |
+| ---------- | -------- | ------------- |
+| 微服务总数 | 18个规划 | 7个核心已完成 |
+| Java类     | 100+     | ✅             |
+| 代码行数   | 10,000+  | ✅             |
+| REST接口   | 50+      | ✅             |
+| 数据库表   | 20+      | ✅             |
+| SQL脚本    | 10+      | ✅             |
+
+## 🔥 核心特性详解
+
+### 1. 地理位置搜索 🌍
+使用Haversine公式在MySQL中直接计算地理距离，性能优异：
+```sql
+SELECT *,
+  (6371 * ACOS(
+    COS(RADIANS(lat)) * COS(RADIANS(latitude))
+    * COS(RADIANS(longitude) - RADIANS(lng))
+    + SIN(RADIANS(lat)) * SIN(RADIANS(latitude))
+  )) AS distance
+FROM station
+HAVING distance <= radius
+ORDER BY distance
+```
+
+### 2. 分时电价策略 💰
+智能分时定价，自动根据时段计算电价：
+- **尖峰时段** (10:00-15:00, 18:00-21:00): 电价 × 1.5
+- **平时段** (07:00-10:00, 15:00-18:00, 21:00-23:00): 电价 × 1.0
+- **谷时段** (23:00-07:00): 电价 × 0.6
+
+### 3. 设备状态管理 🔋
+完整的设备状态流转机制：
+```
+充电桩状态: OFFLINE → IDLE → CHARGING ⇄ MAINTENANCE
+                                 ↓
+                              FAULT
+
+充电枪状态: IDLE → RESERVED → CHARGING → IDLE
+              ↓                 ↓
+         UNAVAILABLE ←――― FAULT
+```
+
+### 4. 统一网关认证 🔐
+所有请求通过网关统一认证，支持：
+- JWT Token验证
+- 白名单机制
+- 自动刷新Token
+- TraceId链路追踪
+- 限流熔断保护
 
 ### 后端（Java 微服务）
 - **开发语言** - Java 21
