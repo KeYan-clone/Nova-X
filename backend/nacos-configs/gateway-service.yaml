@@ -1,0 +1,64 @@
+# ========================================
+# Gateway Service 配置 - gateway-service.yaml
+# Data ID: gateway-service.yaml
+# Group: DEFAULT_GROUP
+# Namespace: dev
+# ========================================
+
+spring:
+  data:
+    redis:
+      host: ${redis.host}
+      port: ${redis.port}
+      password: ${redis.password}
+      database: 15  # Gateway 使用独立的数据库
+      timeout: 3000ms
+
+  cloud:
+    gateway:
+      # 跨域配置
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origins: "*"
+            allowed-methods: "*"
+            allowed-headers: "*"
+            allow-credentials: true
+            max-age: 3600
+
+      # 路由配置
+      routes:
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - StripPrefix=0
+
+        - id: account-service
+          uri: lb://account-service
+          predicates:
+            - Path=/api/v1/users/**
+          filters:
+            - StripPrefix=0
+
+        - id: station-service
+          uri: lb://station-service
+          predicates:
+            - Path=/api/v1/stations/**
+          filters:
+            - StripPrefix=0
+
+        - id: device-service
+          uri: lb://device-service
+          predicates:
+            - Path=/api/v1/devices/**,/api/v1/connectors/**
+          filters:
+            - StripPrefix=0
+
+        - id: session-service
+          uri: lb://session-service
+          predicates:
+            - Path=/api/v1/sessions/**,/api/v1/charging/**
+          filters:
+            - StripPrefix=0

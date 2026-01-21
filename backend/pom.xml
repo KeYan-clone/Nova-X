@@ -7,7 +7,7 @@
 
     <groupId>com.novax</groupId>
     <artifactId>nova-x-parent</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>pom</packaging>
 
     <name>Nova-X Parent</name>
@@ -20,6 +20,9 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
 
+        <!-- Project Version -->
+        <revision>1.0.0</revision>
+
         <!-- Spring Boot & Cloud -->
         <spring-boot.version>3.5.0</spring-boot.version>
         <spring-cloud.version>2025.0.0</spring-cloud.version>
@@ -27,7 +30,7 @@
 
         <!-- Database -->
         <mybatis-plus.version>3.5.9</mybatis-plus.version>
-        <mysql.version>8.0.40</mysql.version>
+        <mysql.version>8.4.0</mysql.version>
         <postgresql.version>42.7.4</postgresql.version>
         <druid.version>1.2.23</druid.version>
         <shardingsphere.version>5.5.1</shardingsphere.version>
@@ -142,17 +145,66 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- MyBatis Plus -->
+            <!-- Internal Common Modules -->
+            <dependency>
+                <groupId>com.novax</groupId>
+                <artifactId>common-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.novax</groupId>
+                <artifactId>common-security</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.novax</groupId>
+                <artifactId>common-bff</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.novax</groupId>
+                <artifactId>common-redis</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.novax</groupId>
+                <artifactId>common-mybatis</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.novax</groupId>
+                <artifactId>common-kafka</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.novax</groupId>
+                <artifactId>common-log</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.novax</groupId>
+                <artifactId>common-swagger</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- MyBatis Plus (Spring Boot 3) -->
             <dependency>
                 <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-boot-starter</artifactId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
                 <version>${mybatis-plus.version}</version>
             </dependency>
 
             <!-- Database Drivers -->
             <dependency>
-                <groupId>mysql</groupId>
-                <artifactId>mysql-connector-java</artifactId>
+                <groupId>com.mysql</groupId>
+                <artifactId>mysql-connector-j</artifactId>
                 <version>${mysql.version}</version>
             </dependency>
 

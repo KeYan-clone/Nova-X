@@ -1,0 +1,11 @@
+server:
+  port: 8087
+
+spring:
+  application:
+    name: payment-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: dev

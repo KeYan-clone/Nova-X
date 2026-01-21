@@ -7,7 +7,7 @@
 
     <parent>
         <groupId>com.novax</groupId>
-        <artifactId>novax-backend</artifactId>
+        <artifactId>nova-x-parent</artifactId>
         <version>1.0.0</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
@@ -39,7 +39,7 @@
 
         <dependency>
             <groupId>com.alibaba</groupId>
-            <artifactId>druid-spring-boot-starter</artifactId>
+            <artifactId>druid-spring-boot-3-starter</artifactId>
         </dependency>
 
         <dependency>
@@ -50,19 +50,16 @@
         <dependency>
             <groupId>com.novax</groupId>
             <artifactId>common-core</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.novax</groupId>
             <artifactId>common-kafka</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.novax</groupId>
             <artifactId>common-swagger</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>

@@ -7,7 +7,7 @@
 
     <parent>
         <groupId>com.novax</groupId>
-        <artifactId>novax-backend</artifactId>
+        <artifactId>nova-x-parent</artifactId>
         <version>1.0.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>

@@ -515,7 +515,7 @@ Redis Cluster 架构
 - **认证授权** - JWT Token（用户端），OAuth2（管理端），MFA（高权限）
 - **防护** - 防 SQL 注入、XSS、CSRF；接口限流；敏感操作审计日志
 
-## 快速开始
+## 🚀 快速开始
 
 ### 环境要求
 ```
@@ -526,7 +526,77 @@ Redis Cluster 架构
 - Kubernetes 1.26+（生产环境）
 ```
 
-### 本地开发
+### 📖 三种配置方式
+
+Nova-X 支持三种配置管理方式，**推荐使用方式三（Nacos配置中心）**：
+
+| 方式         | 说明                       | 适用场景                 | 文档链接                                                |
+| ------------ | -------------------------- | ------------------------ | ------------------------------------------------------- |
+| 方式一       | 直接修改 application.yml   | 单机开发、快速测试       | 见下文                                                  |
+| 方式二       | 使用环境变量覆盖           | CI/CD、容器化部署        | 见下文                                                  |
+| **方式三** ⭐ | **Nacos 配置中心（推荐）** | **生产环境、多环境管理** | [**查看详细教程**](backend/nacos-configs/QUICKSTART.md) |
+
+---
+
+### 方式三：使用 Nacos 配置中心（推荐）⭐
+
+**优势**：
+- ✅ 集中管理所有服务配置
+- ✅ 支持配置热更新（无需重启服务）
+- ✅ 多环境隔离（dev/test/prod）
+- ✅ 配置历史版本管理
+- ✅ 配置加密保护敏感信息
+
+#### 快速启动（5分钟）
+
+**详细步骤请查看**：[📖 Nacos 配置中心快速启动指南](backend/nacos-configs/QUICKSTART.md)
+
+```bash
+# 1. 启动所有中间件（包括 Nacos）
+cd backend
+docker-compose up -d
+
+# 2. 访问 Nacos 控制台并上传配置
+浏览器打开：http://localhost:8848/nacos
+账号密码：nacos/nacos
+
+# 3. 自动上传所有配置（可选）
+cd backend/nacos-configs
+.\upload-configs.ps1
+
+# 4. 编译并启动服务
+cd backend
+mvn clean package -DskipTests
+java -jar infrastructure/gateway-service/target/gateway-service-1.0.0.jar
+```
+
+#### 配置文件位置
+- 📁 配置模板：[backend/nacos-configs/](backend/nacos-configs/)
+- 📄 公共配置：[common.yaml](backend/nacos-configs/common.yaml) - MySQL、Redis、Kafka 地址
+- 📄 服务配置：[account-service.yaml](backend/nacos-configs/account-service.yaml) 等
+
+#### 修改数据库和中间件地址
+
+编辑 Nacos 中的 `common.yaml`：
+```yaml
+datasource:
+  host: 你的MySQL地址  # 修改这里
+  username: 你的用户名
+  password: 你的密码
+
+redis:
+  host: 你的Redis地址  # 修改这里
+  password: 你的密码
+
+kafka:
+  bootstrap-servers: 你的Kafka地址:9092  # 修改这里
+```
+
+点击「发布」后，所有服务**自动生效**（无需重启）！🎉
+
+---
+
+### 方式一：本地开发（直接修改配置文件）
 
 #### 1. 启动基础设施
 ```bash
@@ -539,55 +609,82 @@ docker-compose ps
 
 启动的服务包括：
 - MySQL (3306) - 业务数据库
-- PostgreSQL (5432) - 部分业务数据库
 - Redis (6379) - 缓存
 - Nacos (8848) - 服务注册与配置中心
 - Kafka (9092) - 消息队列
 - Elasticsearch (9200) - 搜索引擎
-- InfluxDB (8086) - 时序数据库
-- MongoDB (27017) - 文档存储
-- MinIO (9000) - 对象存储
+- 其他中间件...
 
-#### 2. 访问 Nacos 控制台
+#### 2. 修改配置文件（如果不使用 localhost）
+
+编辑各服务的 `application.yml`，例如：
+```bash
+# 修改账户服务配置
+vim backend/services/account-service/src/main/resources/application.yml
 ```
-URL: http://localhost:8848/nacos
-用户名: nacos
-密码: nacos
+
+修改数据库、Redis、Kafka 地址：
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://你的MySQL地址:3306/nova_x_account
+    username: 你的用户名
+    password: 你的密码
+  redis:
+    host: 你的Redis地址
+    password: 你的密码
 ```
 
 #### 3. 编译项目
 ```bash
 cd backend
-mvn clean install -DskipTests
+mvn clean package -DskipTests
 ```
 
 #### 4. 启动服务（按顺序）
 ```bash
 # 1. 启动网关
-cd gateway-service
-mvn spring-boot:run
+java -jar infrastructure/gateway-service/target/gateway-service-1.0.0.jar
 
-# 2. 启动账户服务
-cd services/account-service
-mvn spring-boot:run
-
-# 3. 启动充电会话服务
-cd services/session-service
-mvn spring-boot:run
-
-# 4. 启动其他业务服务...
+# 2. 启动业务服务
+java -jar services/account-service/target/account-service-1.0.0.jar
+java -jar services/station-service/target/station-service-1.0.0.jar
+# ...
 ```
 
 #### 5. 验证服务
 ```bash
-# 查看 Nacos 服务列表
-curl http://localhost:8848/nacos/v1/ns/instance/list?serviceName=account-service
-
 # 测试网关
-curl http://localhost:8080/actuator/health
+curl http://localhost:9000/actuator/health
 
-# 测试账户服务
-curl http://localhost:8080/api/v1/account/users/1
+# 测试账户服务（通过网关）
+curl http://localhost:9000/api/v1/users/test
+```
+
+---
+
+### 方式二：使用环境变量
+
+```bash
+# 设置环境变量
+export MYSQL_HOST=192.168.1.100
+export MYSQL_PASSWORD=your_password
+export REDIS_HOST=192.168.1.101
+export KAFKA_BOOTSTRAP_SERVERS=192.168.1.102:9092
+
+# 启动服务
+java -jar account-service-1.0.0.jar
+```
+
+或使用 `.env` 文件配合 Docker Compose：
+```bash
+# .env 文件
+MYSQL_HOST=192.168.1.100
+REDIS_HOST=192.168.1.101
+KAFKA_BOOTSTRAP_SERVERS=192.168.1.102:9092
+
+# 启动
+docker-compose --env-file .env up -d
 ```
 
 ### 生产部署
