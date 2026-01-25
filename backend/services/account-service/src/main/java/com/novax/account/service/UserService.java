@@ -4,6 +4,7 @@ import com.novax.account.domain.dto.UserRegisterDTO;
 import com.novax.account.domain.vo.UserVO;
 import com.novax.common.core.page.PageQuery;
 import com.novax.common.core.page.PageResult;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 用户服务接口
@@ -49,4 +50,9 @@ public interface UserService {
      * 启用用户
      */
     void enableUser(Long userId);
+
+    /**
+     * 上传用户头像并更新
+     */
+    String uploadAvatar(Long userId, MultipartFile file);
 }

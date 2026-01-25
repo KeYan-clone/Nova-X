@@ -1,18 +1,17 @@
 # ========================================
 # Nacos 公共配置 - common.yaml
 # Data ID: common.yaml
-# Group: DEFAULT_GROUP
+# Group: COMMON_GROUP
 # Namespace: dev
 # ========================================
 # 说明：此配置会被所有服务共享，包含通用的中间件配置
 
 # MySQL 数据库配置
 datasource:
-  # 修改为你的 MySQL 地址
-  host: localhost
+  host: mysql
   port: 3306
   username: root
-  password: root
+  password: 123456
   # 连接池配置
   druid:
     initial-size: 5
@@ -39,8 +38,7 @@ datasource:
 
 # Redis 缓存配置
 redis:
-  # 修改为你的 Redis 地址
-  host: localhost
+  host: redis
   port: 6379
   database: 0
   password: # 如果有密码，在这里设置
@@ -54,8 +52,7 @@ redis:
 
 # Kafka 消息队列配置
 kafka:
-  # 修改为你的 Kafka 地址
-  bootstrap-servers: localhost:9092
+  bootstrap-servers: kafka:9092
   consumer:
     group-id: nova-x-consumer
     auto-offset-reset: earliest
@@ -71,12 +68,37 @@ kafka:
 
 # Elasticsearch 搜索引擎配置
 elasticsearch:
-  # 修改为你的 Elasticsearch 地址
-  uris: http://localhost:9200
+  uris: http://elasticsearch:9200
   username:
   password:
   connection-timeout: 5s
   socket-timeout: 10s
+
+# MinIO 对象存储配置
+minio:
+  endpoint: http://minio:9000
+  public-endpoint: http://localhost:9000
+  access-key: minioadmin
+  secret-key: 12345678
+
+# MyBatis-Plus 配置
+mybatis-plus:
+  # Mapper XML 扫描路径
+  mapper-locations: classpath*:/mapper/**/*.xml
+  # 实体类别名扫描包
+  type-aliases-package: com.novax
+  # MyBatis 全局配置
+  global-config:
+    db-config:
+      id-type: assign_id
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    call-setters-on-nulls: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
 
 # 日志配置
 logging:
@@ -91,7 +113,7 @@ logging:
 # Security JWT 配置
 security:
   jwt:
-    secret: nova-x-secret-key-change-in-production-environment
+    secret: nova-x-secret-key-change-in-development-environment
     expiration: 86400  # 24小时
     refresh-expiration: 604800  # 7天
 
@@ -104,3 +126,21 @@ management:
   endpoint:
     health:
       show-details: always
+
+# Swagger/Knife4j 配置（全局）
+swagger:
+  enable: true
+  group-name: nova-x
+  title: Nova-X API
+  description: Nova-X microservices API documentation
+  version: v1
+  paths-to-match:
+    - /api/**
+  packages-to-scan:
+    - com.novax
+  bearer-enabled: true
+  auth-header-name: Authorization
+  auth-header-description: Bearer token
+
+knife4j:
+  enable: true

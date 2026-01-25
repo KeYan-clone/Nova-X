@@ -27,6 +27,7 @@ POST   /api/v1/users/{userId}/verify # 实名认证
 GET    /api/v1/users                 # 分页查询用户列表
 POST   /api/v1/users/{userId}/disable # 禁用用户
 POST   /api/v1/users/{userId}/enable  # 启用用户
+POST   /api/v1/users/{userId}/avatar  # 上传用户头像
 ```
 
 ## 数据库表
@@ -108,3 +109,12 @@ curl -X GET "http://localhost:8081/api/v1/users?page=1&pageSize=10"
 - MySQL
 - Redis
 - Nacos
+- MinIO
+
+## 头像上传示例
+
+```bash
+curl -X POST "http://localhost:8081/api/v1/users/1/avatar" \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@/path/to/avatar.png"
+```

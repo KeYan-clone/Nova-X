@@ -8,8 +8,10 @@ import com.novax.common.core.page.PageResult;
 import com.novax.common.core.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 用户控制器
@@ -95,5 +97,14 @@ public class UserController {
     public Result<Void> enableUser(@PathVariable Long userId) {
         userService.enableUser(userId);
         return Result.success();
+    }
+
+    /**
+     * 上传用户头像
+     */
+    @PostMapping(value = "/{userId}/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Result<String> uploadAvatar(@PathVariable Long userId, @RequestPart("file") MultipartFile file) {
+        String avatarUrl = userService.uploadAvatar(userId, file);
+        return Result.success(avatarUrl);
     }
 }

@@ -12,28 +12,22 @@ spring:
       discovery:
         server-addr: ${NACOS_ADDR:localhost:8848}
         namespace: ${NACOS_NAMESPACE:dev}
-        group: DEFAULT_GROUP
+        group: BUSINESS_GROUP
       # 配置中心配置
       config:
         server-addr: ${NACOS_ADDR:localhost:8848}
         namespace: ${NACOS_NAMESPACE:dev}
-        group: DEFAULT_GROUP
+        group: BUSINESS_GROUP
         file-extension: yaml
         # 启用配置刷新
         refresh-enabled: true
         # 共享配置 - 从 Nacos 加载
         shared-configs:
           - data-id: common.yaml
-            group: DEFAULT_GROUP
+            group: COMMON_GROUP
             refresh: true
         # 扩展配置 - 加载本服务专属配置
         extension-configs:
           - data-id: ${spring.application.name}.yaml
-            group: DEFAULT_GROUP
+            group: BUSINESS_GROUP
             refresh: true
-
-# 注意：数据库、Redis、Kafka 等配置已迁移到 Nacos
-# 请在 Nacos 控制台中配置 common.yaml 和 account-service.yaml
-
-# MyBatis Plus、Security、Logging 等配置已迁移到 Nacos
-# 本地只保留必要的基础配置

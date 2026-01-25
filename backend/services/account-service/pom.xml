@@ -40,6 +40,11 @@
             <artifactId>common-redis</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.novax</groupId>
+            <artifactId>common-swagger</artifactId>
+        </dependency>
+
         <!-- Spring Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

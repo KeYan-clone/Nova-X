@@ -1,11 +1,7 @@
 package com.novax.common.kafka.config;
 
-import org.springframework.context.annotation.Configuration;
-
 /**
- * Kafka configuration
+ * Legacy placeholder. Kafka auto-configuration is now provided by KafkaAutoConfiguration.
  */
-@Configuration
-public class KafkaConfig {
-
+class KafkaConfig {
 }
