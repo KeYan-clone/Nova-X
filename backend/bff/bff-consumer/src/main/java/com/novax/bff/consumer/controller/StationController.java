@@ -1,6 +1,6 @@
 package com.novax.bff.consumer.controller;
 
-import com.novax.common.core.domain.Result;
+import com.novax.common.core.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +18,8 @@ public class StationController {
     @Operation(summary = "查找附近充电站")
     @GetMapping
     public Result<?> findNearby(@RequestParam Double lng,
-                                @RequestParam Double lat,
-                                @RequestParam(required = false) Integer radius) {
+            @RequestParam Double lat,
+            @RequestParam(required = false) Integer radius) {
         log.info("查找附近充电站: lng={}, lat={}, radius={}", lng, lat, radius);
         return Result.success();
     }

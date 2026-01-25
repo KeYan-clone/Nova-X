@@ -43,11 +43,20 @@ public enum ResultCode {
   EXTERNAL_API_ERROR(50500, "External API error"),
 
   // ========== 业务错误 (60xxx) ==========
+  // 账户相关 (600xx)
   ACCOUNT_NOT_FOUND(60001, "Account not found"),
   ACCOUNT_DISABLED(60002, "Account disabled"),
-  PASSWORD_ERROR(60003, "Password error"),
-  VERIFICATION_CODE_ERROR(60004, "Verification code error"),
+  ACCOUNT_LOCKED(60003, "Account locked"),
+  PASSWORD_ERROR(60004, "Password error"),
+  VERIFICATION_CODE_ERROR(60005, "Verification code error"),
+  TOKEN_INVALID(60006, "Token invalid"),
+  TOKEN_EXPIRED(60007, "Token expired"),
+  USER_NOT_FOUND(60001, "User not found"), // 别名，指向 ACCOUNT_NOT_FOUND
+  USER_ACCOUNT_DISABLED(60002, "User account disabled"), // 别名，指向 ACCOUNT_DISABLED
+  USER_ACCOUNT_LOCKED(60003, "User account locked"), // 别名，指向 ACCOUNT_LOCKED
+  USER_PASSWORD_ERROR(60004, "User password error"), // 别名，指向 PASSWORD_ERROR
 
+  // 充电站相关 (601xx)
   STATION_NOT_FOUND(60101, "Station not found"),
   STATION_OFFLINE(60102, "Station offline"),
 

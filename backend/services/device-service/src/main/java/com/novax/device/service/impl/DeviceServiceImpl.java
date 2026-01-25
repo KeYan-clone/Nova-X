@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.novax.common.core.exception.BusinessException;
 import com.novax.common.core.result.ResultCode;
-import com.novax.common.core.utils.IdGenerator;
+import com.novax.common.core.util.IdGenerator;
 import com.novax.device.dto.ConnectorCreateDTO;
 import com.novax.device.dto.DeviceCreateDTO;
 import com.novax.device.dto.DeviceUpdateDTO;
@@ -77,7 +77,7 @@ public class DeviceServiceImpl implements DeviceService {
     public void updateDevice(Long id, DeviceUpdateDTO dto) {
         Device device = deviceMapper.selectById(id);
         if (device == null) {
-            throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND, "设备不存在");
+            throw new BusinessException(ResultCode.DEVICE_NOT_FOUND, "设备不存在");
         }
 
         BeanUtils.copyProperties(dto, device);
@@ -89,13 +89,13 @@ public class DeviceServiceImpl implements DeviceService {
     public void deleteDevice(Long id) {
         Device device = deviceMapper.selectById(id);
         if (device == null) {
-            throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND, "设备不存在");
+            throw new BusinessException(ResultCode.DEVICE_NOT_FOUND, "设备不存在");
         }
 
         // 检查是否有充电枪
         List<Connector> connectors = connectorMapper.findByDeviceId(id);
         if (!connectors.isEmpty()) {
-            throw new BusinessException(ResultCode.OPERATION_FAILED, "该设备下还有充电枪，无法删除");
+            throw new BusinessException(ResultCode.CONFLICT, "该设备下还有充电枪，无法删除");
         }
 
         deviceMapper.deleteById(id);
@@ -105,7 +105,7 @@ public class DeviceServiceImpl implements DeviceService {
     public DeviceVO getDeviceById(Long id) {
         Device device = deviceMapper.selectById(id);
         if (device == null) {
-            throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND, "设备不存在");
+            throw new BusinessException(ResultCode.DEVICE_NOT_FOUND, "设备不存在");
         }
 
         DeviceVO vo = convertToVO(device);
@@ -155,16 +155,16 @@ public class DeviceServiceImpl implements DeviceService {
         // 验证设备是否存在
         Device device = deviceMapper.selectById(dto.getDeviceId());
         if (device == null) {
-            throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND, "设备不存在");
+            throw new BusinessException(ResultCode.DEVICE_NOT_FOUND, "设备不存在");
         }
 
         // 检查充电枪序号是否重复
         LambdaQueryWrapper<Connector> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Connector::getDeviceId, dto.getDeviceId())
-               .eq(Connector::getConnectorNo, dto.getConnectorNo());
+                .eq(Connector::getConnectorNo, dto.getConnectorNo());
         Long count = connectorMapper.selectCount(wrapper);
         if (count > 0) {
-            throw new BusinessException(ResultCode.PARAM_INVALID, "该设备下已存在" + dto.getConnectorNo() + "号充电枪");
+            throw new BusinessException(ResultCode.RESOURCE_ALREADY_EXISTS, "该设备下已存在" + dto.getConnectorNo() + "号充电枪");
         }
 
         Connector connector = new Connector();
@@ -194,7 +194,7 @@ public class DeviceServiceImpl implements DeviceService {
     public void updateDeviceStatus(Long id, String deviceStatus) {
         Device device = deviceMapper.selectById(id);
         if (device == null) {
-            throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND, "设备不存在");
+            throw new BusinessException(ResultCode.DEVICE_NOT_FOUND, "设备不存在");
         }
 
         device.setDeviceStatus(deviceStatus);
@@ -206,7 +206,7 @@ public class DeviceServiceImpl implements DeviceService {
     public void updateConnectorStatus(Long connectorId, String connectorStatus) {
         Connector connector = connectorMapper.selectById(connectorId);
         if (connector == null) {
-            throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND, "充电枪不存在");
+            throw new BusinessException(ResultCode.CONNECTOR_NOT_FOUND, "充电枪不存在");
         }
 
         connector.setConnectorStatus(connectorStatus);
@@ -218,7 +218,7 @@ public class DeviceServiceImpl implements DeviceService {
     public void deviceOnline(Long id) {
         Device device = deviceMapper.selectById(id);
         if (device == null) {
-            throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND, "设备不存在");
+            throw new BusinessException(ResultCode.DEVICE_NOT_FOUND, "设备不存在");
         }
 
         device.setDeviceStatus("IDLE");
@@ -231,7 +231,7 @@ public class DeviceServiceImpl implements DeviceService {
     public void deviceOffline(Long id) {
         Device device = deviceMapper.selectById(id);
         if (device == null) {
-            throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND, "设备不存在");
+            throw new BusinessException(ResultCode.DEVICE_NOT_FOUND, "设备不存在");
         }
 
         device.setDeviceStatus("OFFLINE");
@@ -264,7 +264,8 @@ public class DeviceServiceImpl implements DeviceService {
     private ConnectorVO convertToConnectorVO(Connector connector) {
         ConnectorVO vo = new ConnectorVO();
         BeanUtils.copyProperties(connector, vo);
-        vo.setConnectorStatusDisplay(CONNECTOR_STATUS_MAP.getOrDefault(connector.getConnectorStatus(), connector.getConnectorStatus()));
+        vo.setConnectorStatusDisplay(
+                CONNECTOR_STATUS_MAP.getOrDefault(connector.getConnectorStatus(), connector.getConnectorStatus()));
         return vo;
     }
 }

@@ -1,7 +1,7 @@
 package com.novax.device.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.novax.common.mybatis.entity.BaseEntity;
+import com.novax.common.mybatis.base.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

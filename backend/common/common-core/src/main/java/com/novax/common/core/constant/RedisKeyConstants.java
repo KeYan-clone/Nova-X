@@ -6,12 +6,27 @@ package com.novax.common.core.constant;
 public interface RedisKeyConstants {
 
   /**
-   * Token 前缀
+   * 用户Token前缀
+   */
+  String USER_TOKEN = "auth:token:user:";
+
+  /**
+   * Token 前缀（通用）
    */
   String TOKEN_PREFIX = "token:";
 
   /**
-   * 验证码前缀
+   * 图形验证码前缀
+   */
+  String CAPTCHA_CODE = "auth:captcha:";
+
+  /**
+   * 短信验证码前缀
+   */
+  String SMS_CODE = "auth:sms:";
+
+  /**
+   * 验证码前缀（通用）
    */
   String VERIFY_CODE_PREFIX = "verify:code:";
 

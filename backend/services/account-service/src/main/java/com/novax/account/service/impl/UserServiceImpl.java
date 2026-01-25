@@ -56,7 +56,8 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setPhone(registerDTO.getPhone());
         user.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
-        user.setNickname(registerDTO.getNickname() != null ? registerDTO.getNickname() : "User_" + registerDTO.getPhone().substring(7));
+        user.setNickname(registerDTO.getNickname() != null ? registerDTO.getNickname()
+                : "User_" + registerDTO.getPhone().substring(7));
         user.setStatus(1); // 启用
         user.setVerified(0); // 未认证
         user.setUserType(1); // 普通用户
@@ -69,7 +70,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserVO getUserById(Long userId) {
-        User user = userMapper.selectById(userId)->orElseThrow(() -> new BusinessException(ResultCode.ACCOUNT_NOT_FOUND));
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ResultCode.ACCOUNT_NOT_FOUND);
+        }
 
         return convertToVO(user);
     }
@@ -78,7 +82,10 @@ public class UserServiceImpl implements UserService {
     public UserVO getUserByPhone(String phone) {
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(User::getPhone, phone);
-        User user = userMapper.selectOne(queryWrapper)->orElseThrow(() -> new BusinessException(ResultCode.ACCOUNT_NOT_FOUND));
+        User user = userMapper.selectOne(queryWrapper);
+        if (user == null) {
+            throw new BusinessException(ResultCode.ACCOUNT_NOT_FOUND);
+        }
 
         return convertToVO(user);
     }
@@ -109,7 +116,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void verifyRealName(Long userId, String realName, String idCard) {
-        User user = userMapper.selectById(userId)->orElseThrow(() -> new BusinessException(ResultCode.ACCOUNT_NOT_FOUND));
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ResultCode.ACCOUNT_NOT_FOUND);
+        }
 
         if (user.getVerified() == 1) {
             throw new BusinessException(ResultCode.CONFLICT, "User already verified");
@@ -138,14 +148,16 @@ public class UserServiceImpl implements UserService {
                 pageQuery.getPage(),
                 pageQuery.getPageSize(),
                 resultPage.getTotal(),
-                records
-        );
+                records);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void disableUser(Long userId) {
-        User user = userMapper.selectById(userId)->orElseThrow(() -> new BusinessException(ResultCode.ACCOUNT_NOT_FOUND));
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ResultCode.ACCOUNT_NOT_FOUND);
+        }
 
         user.setStatus(0);
         userMapper.updateById(user);
@@ -155,7 +167,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void enableUser(Long userId) {
-        User user = userMapper.selectById(userId)->orElseThrow(() -> new BusinessException(ResultCode.ACCOUNT_NOT_FOUND));
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ResultCode.ACCOUNT_NOT_FOUND);
+        }
 
         user.setStatus(1);
         userMapper.updateById(user);
@@ -166,7 +181,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String uploadAvatar(Long userId, MultipartFile file) {
-        User user = userMapper.selectById(userId)->orElseThrow(() -> new BusinessException(ResultCode.ACCOUNT_NOT_FOUND));
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ResultCode.ACCOUNT_NOT_FOUND);
+        }
 
         String avatarUrl = minioAvatarStorageService.uploadAvatar(userId, file);
         user.setAvatar(avatarUrl);

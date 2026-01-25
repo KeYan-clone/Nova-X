@@ -1,77 +1,56 @@
 package com.novax.common.log.filter;
 
-import com.novax.common.log.utils.TraceIdGenerator;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.MDC;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.UUID;
 
 /**
- * TraceID过滤器
- * 为每个HTTP请求生成或传递TraceID
+ * TraceId 过滤器
+ * 为每个请求生成唯一的 TraceId，用于链路追踪
  *
  * @author Nova-X
- * @since 2026-01-20
+ * @since 2026-01-25
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class TraceIdFilter implements Filter {
 
-    /**
-     * TraceID请求头名称
-     */
-    private static final String TRACE_ID_HEADER = "X-Trace-Id";
-
-    /**
-     * 请求ID请求头名称
-     */
-    private static final String REQUEST_ID_HEADER = "X-Request-Id";
-
-    /**
-     * 用户ID请求头名称
-     */
-    private static final String USER_ID_HEADER = "X-User-Id";
+    private static final String TRACE_ID = "traceId";
+    private static final String HEADER_TRACE_ID = "X-Trace-Id";
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
-        HttpServletResponse httpResponse = (HttpServletResponse) response;
+
+        // 尝试从请求头获取 TraceId
+        String traceId = httpRequest.getHeader(HEADER_TRACE_ID);
+
+        // 如果请求头没有 TraceId，则生成新的
+        if (traceId == null || traceId.isEmpty()) {
+            traceId = generateTraceId();
+        }
 
         try {
-            // 获取或生成TraceID
-            String traceId = httpRequest.getHeader(TRACE_ID_HEADER);
-            if (traceId == null || traceId.isEmpty()) {
-                traceId = TraceIdGenerator.generate();
-            }
-            TraceIdGenerator.setTraceId(traceId);
-
-            // 获取或生成请求ID
-            String requestId = httpRequest.getHeader(REQUEST_ID_HEADER);
-            if (requestId == null || requestId.isEmpty()) {
-                requestId = TraceIdGenerator.generate();
-            }
-            TraceIdGenerator.setRequestId(requestId);
-
-            // 获取用户ID（如果存在）
-            String userId = httpRequest.getHeader(USER_ID_HEADER);
-            if (userId != null && !userId.isEmpty()) {
-                TraceIdGenerator.setUserId(userId);
-            }
-
-            // 将TraceID和RequestID添加到响应头
-            httpResponse.setHeader(TRACE_ID_HEADER, traceId);
-            httpResponse.setHeader(REQUEST_ID_HEADER, requestId);
-
-            // 继续过滤链
+            // 将 TraceId 放入 MDC，使其在日志中可用
+            MDC.put(TRACE_ID, traceId);
             chain.doFilter(request, response);
         } finally {
-            // 清理MDC上下文
-            TraceIdGenerator.clear();
+            // 清理 MDC
+            MDC.remove(TRACE_ID);
         }
+    }
+
+    /**
+     * 生成 TraceId
+     */
+    private String generateTraceId() {
+        return UUID.randomUUID().toString().replace("-", "");
     }
 }

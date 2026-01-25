@@ -3,10 +3,12 @@ package com.novax.auth;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 
+/**
+ * 认证授权服务启动类
+ * 当前实现基于 JWT Token 的认证方式
+ */
 @EnableDiscoveryClient
-@EnableAuthorizationServer
 @SpringBootApplication
 public class AuthServiceApplication {
 

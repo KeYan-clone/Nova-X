@@ -2,7 +2,6 @@ package com.novax.common.mybatis.config;
 
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
-import com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import org.springframework.context.annotation.Bean;
@@ -23,15 +22,12 @@ public class MybatisPlusConfig {
 
         // 分页插件
         PaginationInnerInterceptor paginationInterceptor = new PaginationInnerInterceptor(DbType.MYSQL);
-        paginationInterceptor.setMaxLimit(100L); // 单页最大100条
-        paginationInterceptor.setOverflow(false); // 溢出总页数后是否进行处理
+        paginationInterceptor.setMaxLimit(1000L); // 单页最大1000条
+        paginationInterceptor.setOverflow(true); // 溢出总页数后进行处理，返回第一页
         interceptor.addInnerInterceptor(paginationInterceptor);
 
         // 乐观锁插件
         interceptor.addInnerInterceptor(new OptimisticLockerInnerInterceptor());
-
-        // 防止全表更新与删除
-        interceptor.addInnerInterceptor(new BlockAttackInnerInterceptor());
 
         return interceptor;
     }

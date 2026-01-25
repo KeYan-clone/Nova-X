@@ -1,5 +1,6 @@
 package com.novax.common.log.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.novax.common.log.aspect.LogAspect;
 import com.novax.common.log.filter.TraceIdFilter;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
  * 自动配置日志相关的Bean
  *
  * @author Nova-X
- * @since 2026-01-20
+ * @since 2026-01-25
  */
 @Configuration
 @Slf4j
@@ -33,8 +34,8 @@ public class LogAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public LogAspect logAspect() {
+    public LogAspect logAspect(ObjectMapper objectMapper) {
         log.info("初始化日志切面");
-        return new LogAspect();
+        return new LogAspect(objectMapper);
     }
 }

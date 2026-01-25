@@ -83,15 +83,15 @@
         <!-- Infrastructure Services -->
         <module>infrastructure/gateway-service</module>
         <module>infrastructure/auth-service</module>
-        <module>infrastructure/monitor-service</module>
-        <module>infrastructure/log-service</module>
+        <!-- <module>infrastructure/monitor-service</module> -->
+        <!-- <module>infrastructure/log-service</module> -->
 
         <!-- Core Business Services -->
         <module>services/account-service</module>
         <module>services/station-service</module>
         <module>services/device-service</module>
         <module>services/iot-gateway-service</module>
-        <module>services/session-service</module>
+        <!-- <module>services/session-service</module> -->
         <module>services/billing-service</module>
         <module>services/settlement-service</module>
         <module>services/payment-service</module>
@@ -111,7 +111,7 @@
         <module>bff/bff-admin</module>
 
         <!-- Algorithm & Data Services -->
-        <module>algorithm/algorithm-service</module>
+        <!-- <module>algorithm/algorithm-service</module> -->
         <module>data/data-sync-service</module>
         <module>data/search-service</module>
     </modules>
@@ -349,6 +349,12 @@
             <dependency>
                 <groupId>org.apache.skywalking</groupId>
                 <artifactId>apm-toolkit-logback-1.x</artifactId>
+                <version>${skywalking.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.skywalking</groupId>
+                <artifactId>apm-toolkit-trace</artifactId>
                 <version>${skywalking.version}</version>
             </dependency>
 

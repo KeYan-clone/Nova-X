@@ -29,7 +29,7 @@ public class MemberController {
 
     @Operation(summary = "开通会员")
     @PostMapping("/open")
-    @Log(title = "开通会员", businessType = "INSERT")
+    @Log(value = "开通会员", type = Log.OperationType.INSERT)
     public Result<MemberInfoVO> openMembership(
             @Parameter(description = "用户ID") @RequestParam Long userId) {
         MemberInfoVO member = memberService.openMembership(userId);
@@ -46,7 +46,7 @@ public class MemberController {
 
     @Operation(summary = "余额充值")
     @PostMapping("/recharge")
-    @Log(title = "余额充值", businessType = "UPDATE")
+    @Log(value = "余額充值", type = Log.OperationType.UPDATE)
     public Result<Boolean> recharge(
             @Parameter(description = "用户ID") @RequestParam Long userId,
             @Valid @RequestBody RechargeDTO rechargeDTO) {

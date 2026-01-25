@@ -6,7 +6,6 @@ import com.novax.auth.domain.vo.CaptchaVO;
 import com.novax.auth.domain.vo.LoginVO;
 import com.novax.auth.service.AuthService;
 import com.novax.common.core.result.Result;
-import com.novax.common.log.annotation.Log;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,7 +35,6 @@ public class AuthController {
      */
     @PostMapping("/login/password")
     @Operation(summary = "密码登录", description = "使用用户名/手机号/邮箱+密码登录")
-    @Log(value = "密码登录", type = Log.OperationType.OTHER)
     public Result<LoginVO> passwordLogin(@Valid @RequestBody PasswordLoginDTO dto) {
         LoginVO loginVO = authService.passwordLogin(dto);
         return Result.success(loginVO);
@@ -47,7 +45,6 @@ public class AuthController {
      */
     @PostMapping("/login/sms")
     @Operation(summary = "短信登录", description = "使用手机号+短信验证码登录")
-    @Log(value = "短信登录", type = Log.OperationType.OTHER)
     public Result<LoginVO> smsLogin(@Valid @RequestBody SmsLoginDTO dto) {
         LoginVO loginVO = authService.smsLogin(dto);
         return Result.success(loginVO);
@@ -58,10 +55,8 @@ public class AuthController {
      */
     @PostMapping("/refresh")
     @Operation(summary = "刷新令牌", description = "使用刷新令牌获取新的访问令牌")
-    @Log(value = "刷新令牌", type = Log.OperationType.OTHER)
     public Result<LoginVO> refreshToken(
-            @Parameter(description = "刷新令牌", required = true)
-            @RequestHeader("Refresh-Token") String refreshToken) {
+            @Parameter(description = "刷新令牌", required = true) @RequestHeader("Refresh-Token") String refreshToken) {
         LoginVO loginVO = authService.refreshToken(refreshToken);
         return Result.success(loginVO);
     }
@@ -71,10 +66,8 @@ public class AuthController {
      */
     @PostMapping("/logout")
     @Operation(summary = "退出登录", description = "退出当前登录状态，清除令牌")
-    @Log(value = "退出登录", type = Log.OperationType.OTHER)
     public Result<Void> logout(
-            @Parameter(description = "访问令牌")
-            @RequestHeader(value = "Authorization", required = false) String authorization) {
+            @Parameter(description = "访问令牌") @RequestHeader(value = "Authorization", required = false) String authorization) {
         if (authorization != null && authorization.startsWith("Bearer ")) {
             String token = authorization.substring(7);
             authService.logout(token);
@@ -97,12 +90,8 @@ public class AuthController {
      */
     @PostMapping("/sms-code")
     @Operation(summary = "发送短信验证码", description = "发送短信验证码到指定手机号")
-    @Log(value = "发送短信验证码", type = Log.OperationType.OTHER)
     public Result<Void> sendSmsCode(
-            @Parameter(description = "手机号", required = true, example = "13800138000")
-            @RequestParam
-            @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
-            String phone) {
+            @Parameter(description = "手机号", required = true, example = "13800138000") @RequestParam @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确") String phone) {
         authService.sendSmsCode(phone);
         return Result.success();
     }
@@ -113,8 +102,7 @@ public class AuthController {
     @GetMapping("/validate")
     @Operation(summary = "验证Token", description = "验证访问令牌是否有效")
     public Result<Boolean> validateToken(
-            @Parameter(description = "访问令牌", required = true)
-            @RequestHeader("Authorization") String authorization) {
+            @Parameter(description = "访问令牌", required = true) @RequestHeader("Authorization") String authorization) {
         String token = authorization.replace("Bearer ", "");
         boolean valid = authService.validateToken(token);
         return Result.success(valid);

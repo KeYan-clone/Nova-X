@@ -4,6 +4,7 @@ import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.CircleCaptcha;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.DesensitizedUtil;
+import cn.hutool.core.util.RandomUtil;
 import com.novax.auth.domain.dto.PasswordLoginDTO;
 import com.novax.auth.domain.dto.SmsLoginDTO;
 import com.novax.auth.domain.entity.LoginLog;
@@ -18,6 +19,7 @@ import com.novax.common.redis.util.RedisUtil;
 import com.novax.common.security.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -28,9 +30,10 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 认证服务实现类
+ * 基于 Spring Boot 3.x / Spring Security 6.x
  *
  * @author Nova-X
- * @since 2026-01-20
+ * @since 2026-01-25
  */
 @Service
 @RequiredArgsConstructor
@@ -42,15 +45,14 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final LoginLogMapper loginLogMapper;
 
-    /**
-     * 验证码过期时间（秒）
-     */
-    private static final long CAPTCHA_EXPIRE_TIME = 300;
+    @Value("${auth.captcha.expire:300}")
+    private long captchaExpireTime;
 
-    /**
-     * 短信验证码过期时间（秒）
-     */
-    private static final long SMS_CODE_EXPIRE_TIME = 300;
+    @Value("${auth.login.max-retry:5}")
+    private int maxRetryCount;
+
+    @Value("${auth.login.lock-time:3600}")
+    private long lockTime;
 
     /**
      * 访问令牌过期时间（秒）
@@ -62,74 +64,58 @@ public class AuthServiceImpl implements AuthService {
      */
     private static final long REFRESH_TOKEN_EXPIRE_TIME = 604800;
 
+    /**
+     * 短信验证码过期时间（秒）
+     */
+    private static final long SMS_CODE_EXPIRE_TIME = 300;
+
     @Override
     public LoginVO passwordLogin(PasswordLoginDTO dto) {
         log.info("用户 {} 尝试密码登录", dto.getUsername());
 
-        // 1. 验证图形验证码
+        // 1. 检查账户锁定状态
+        checkAccountLock(dto.getUsername());
+
+        // 2. 验证图形验证码
         if (dto.getCaptchaKey() != null && !dto.getCaptchaKey().isEmpty()) {
             validateCaptcha(dto.getCaptchaKey(), dto.getCaptcha());
         }
 
-        // 2. 查询用户信息（这里模拟，实际应该调用account-service）
-        // 实际场景应该通过Feign调用用户服务
+        // 3. 查询用户信息（实际应通过 Feign 调用 account-service）
         Map<String, Object> userInfo = getUserByUsername(dto.getUsername());
         if (userInfo == null) {
+            increaseFailedAttempts(dto.getUsername());
             saveLoginLog(null, dto.getUsername(), "password", "failed", "用户不存在");
             throw new BusinessException(ResultCode.USER_NOT_FOUND);
         }
 
-        // 3. 验证密码
+        // 4. 验证密码
         String storedPassword = (String) userInfo.get("password");
         if (!passwordEncoder.matches(dto.getPassword(), storedPassword)) {
-            saveLoginLog((Long) userInfo.get("userId"), dto.getUsername(), "password", "failed", "密码错误");
+            Long userId = (Long) userInfo.get("userId");
+            increaseFailedAttempts(dto.getUsername());
+            saveLoginLog(userId, dto.getUsername(), "password", "failed", "密码错误");
             throw new BusinessException(ResultCode.USER_PASSWORD_ERROR);
         }
 
-        // 4. 检查用户状态
+        // 5. 检查用户状态
         Integer status = (Integer) userInfo.get("status");
         if (status != 1) {
             saveLoginLog((Long) userInfo.get("userId"), dto.getUsername(), "password", "failed", "账户已禁用");
             throw new BusinessException(ResultCode.USER_ACCOUNT_DISABLED);
         }
 
-        // 5. 生成Token
-        Long userId = (Long) userInfo.get("userId");
-        String username = (String) userInfo.get("username");
-        String userType = (String) userInfo.get("userType");
+        // 6. 清除失败次数
+        resetFailedAttempts(dto.getUsername());
 
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", userId);
-        claims.put("username", username);
-        claims.put("userType", userType);
+        // 7. 生成Token
+        LoginVO loginVO = generateTokens(userInfo);
 
-        String accessToken = jwtUtil.generateToken(claims, ACCESS_TOKEN_EXPIRE_TIME);
-        String refreshToken = jwtUtil.generateToken(claims, REFRESH_TOKEN_EXPIRE_TIME);
+        // 8. 记录登录日志
+        saveLoginLog(loginVO.getUserId(), dto.getUsername(), "password", "success", null);
 
-        // 6. 存储Token到Redis
-        String tokenKey = RedisKeyConstants.USER_TOKEN + userId;
-        redisUtil.set(tokenKey, accessToken, ACCESS_TOKEN_EXPIRE_TIME, TimeUnit.SECONDS);
-
-        String refreshKey = RedisKeyConstants.USER_TOKEN + "refresh:" + userId;
-        redisUtil.set(refreshKey, refreshToken, REFRESH_TOKEN_EXPIRE_TIME, TimeUnit.SECONDS);
-
-        // 7. 记录登录日志
-        saveLoginLog(userId, username, "password", "success", null);
-
-        log.info("用户 {} 登录成功", username);
-
-        // 8. 返回登录信息
-        return LoginVO.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .tokenType("Bearer")
-                .expiresIn(ACCESS_TOKEN_EXPIRE_TIME)
-                .userId(userId)
-                .username(username)
-                .realName((String) userInfo.get("realName"))
-                .phone(DesensitizedUtil.mobilePhone((String) userInfo.get("phone")))
-                .userType(userType)
-                .build();
+        log.info("用户 {} 登录成功", dto.getUsername());
+        return loginVO;
     }
 
     @Override
@@ -268,14 +254,14 @@ public class AuthServiceImpl implements AuthService {
 
         // 3. 存储到Redis
         String key = RedisKeyConstants.CAPTCHA_CODE + captchaKey;
-        redisUtil.set(key, code, CAPTCHA_EXPIRE_TIME, TimeUnit.SECONDS);
+        redisUtil.set(key, code, captchaExpireTime, TimeUnit.SECONDS);
 
         log.info("生成验证码: key={}, code={}", captchaKey, code);
 
         return CaptchaVO.builder()
                 .captchaKey(captchaKey)
                 .captchaImage("data:image/png;base64," + imageBase64)
-                .expiresIn(CAPTCHA_EXPIRE_TIME)
+                .expiresIn(captchaExpireTime)
                 .build();
     }
 
@@ -297,6 +283,77 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public boolean validateToken(String token) {
         return jwtUtil.validateToken(token);
+    }
+
+    /**
+     * 检查账户锁定状态
+     */
+    private void checkAccountLock(String username) {
+        String lockKey = "auth:login:lock:" + username;
+        if (redisUtil.hasKey(lockKey)) {
+            Long remaining = redisUtil.getExpire(lockKey);
+            throw new BusinessException(ResultCode.USER_ACCOUNT_LOCKED,
+                    "账户已锁定，请" + remaining / 60 + "分钟后再试");
+        }
+    }
+
+    /**
+     * 增加失败次数
+     */
+    private void increaseFailedAttempts(String username) {
+        String failKey = "auth:login:fail:" + username;
+        Long failCount = redisUtil.increment(failKey, 1);
+        redisUtil.expire(failKey, lockTime, TimeUnit.SECONDS);
+
+        if (failCount >= maxRetryCount) {
+            String lockKey = "auth:login:lock:" + username;
+            redisUtil.set(lockKey, "locked", lockTime, TimeUnit.SECONDS);
+            log.warn("账户 {} 登录失败次数过多，已锁定", username);
+        }
+    }
+
+    /**
+     * 重置失败次数
+     */
+    private void resetFailedAttempts(String username) {
+        String failKey = "auth:login:fail:" + username;
+        redisUtil.delete(failKey);
+    }
+
+    /**
+     * 生成访问令牌和刷新令牌
+     */
+    private LoginVO generateTokens(Map<String, Object> userInfo) {
+        Long userId = (Long) userInfo.get("userId");
+        String username = (String) userInfo.get("username");
+        String userType = (String) userInfo.get("userType");
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
+        claims.put("username", username);
+        claims.put("userType", userType);
+
+        String accessToken = jwtUtil.generateToken(claims, ACCESS_TOKEN_EXPIRE_TIME);
+        String refreshToken = jwtUtil.generateToken(claims, REFRESH_TOKEN_EXPIRE_TIME);
+
+        // 存储Token到Redis
+        String tokenKey = RedisKeyConstants.USER_TOKEN + userId;
+        redisUtil.set(tokenKey, accessToken, ACCESS_TOKEN_EXPIRE_TIME, TimeUnit.SECONDS);
+
+        String refreshKey = RedisKeyConstants.USER_TOKEN + "refresh:" + userId;
+        redisUtil.set(refreshKey, refreshToken, REFRESH_TOKEN_EXPIRE_TIME, TimeUnit.SECONDS);
+
+        return LoginVO.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .tokenType("Bearer")
+                .expiresIn(ACCESS_TOKEN_EXPIRE_TIME)
+                .userId(userId)
+                .username(username)
+                .realName((String) userInfo.get("realName"))
+                .phone(DesensitizedUtil.mobilePhone((String) userInfo.get("phone")))
+                .userType(userType)
+                .build();
     }
 
     /**
@@ -356,7 +413,7 @@ public class AuthServiceImpl implements AuthService {
      * 保存登录日志
      */
     private void saveLoginLog(Long userId, String username, String loginType,
-                             String status, String failureReason) {
+            String status, String failureReason) {
         LoginLog loginLog = new LoginLog();
         loginLog.setUserId(userId);
         loginLog.setUsername(username);

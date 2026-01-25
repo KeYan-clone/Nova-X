@@ -1,0 +1,56 @@
+# ========================================
+# Auth Service 配置 - auth-service.yaml
+# Data ID: auth-service.yaml
+# Group: DEFAULT_GROUP
+# Namespace: dev
+# ========================================
+
+spring:
+  datasource:
+    url: jdbc:mysql://${datasource.host}:${datasource.port}/nova_x_auth?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=Asia/Shanghai
+    username: ${datasource.username}
+    password: ${datasource.password}
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    druid: ${datasource.druid}
+
+  redis:
+    host: ${redis.host}
+    port: ${redis.port}
+    database: 2  # 认证服务使用独立的数据库
+    password: ${redis.password}
+    timeout: ${redis.timeout}
+    lettuce: ${redis.lettuce}
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.novax.auth.domain.entity
+  global-config:
+    db-config:
+      id-type: ASSIGN_ID
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+
+# 认证服务专属配置
+auth:
+  # 验证码配置
+  captcha:
+    enabled: true
+    type: math  # math：数学验证码，char：字符验证码
+    length: 4
+    expire: 300  # 过期时间（秒）
+
+  # 登录配置
+  login:
+    max-retry: 5  # 最大重试次数
+    lock-time: 3600  # 锁定时间（秒）
+
+  # Token 配置（继承自 common.yaml 的 security.jwt）
+  token:
+    header: Authorization
+    prefix: Bearer

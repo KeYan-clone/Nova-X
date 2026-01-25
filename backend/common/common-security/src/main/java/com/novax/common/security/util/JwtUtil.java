@@ -104,6 +104,52 @@ public class JwtUtil {
         return claims.getSubject();
     }
 
+    /**
+     * 从 Token 中获取用户ID
+     */
+    public String getUserIdFromToken(String token) {
+        Map<String, Object> claims = parseToken(token);
+        Object userId = claims.get("userId");
+        return userId != null ? userId.toString() : null;
+    }
+
+    /**
+     * 从 Token 中获取指定的 claim
+     */
+    public <T> T getClaimFromToken(String token, String claimKey, Class<T> clazz) {
+        Map<String, Object> claims = parseToken(token);
+        Object value = claims.get(claimKey);
+        if (value == null) {
+            return null;
+        }
+        if (clazz.isInstance(value)) {
+            return clazz.cast(value);
+        }
+        // 尝试类型转换
+        if (clazz == String.class) {
+            return clazz.cast(value.toString());
+        }
+        if (clazz == Long.class && value instanceof Number) {
+            return clazz.cast(((Number) value).longValue());
+        }
+        if (clazz == Integer.class && value instanceof Number) {
+            return clazz.cast(((Number) value).intValue());
+        }
+        return null;
+    }
+
+    /**
+     * 获取所有 claims
+     */
+    public Claims getAllClaims(String token) {
+        String rawToken = resolveToken(token);
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(rawToken)
+                .getPayload();
+    }
+
     private boolean isTokenExpired(Date expiration) {
         return expiration != null && expiration.before(new Date());
     }

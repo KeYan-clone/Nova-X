@@ -31,7 +31,7 @@ public class BillController {
 
     @Operation(summary = "根据会话ID生成账单")
     @PostMapping("/generate/{sessionId}")
-    @Log(title = "生成账单", businessType = "INSERT")
+    @Log(value = "生成账单", type = Log.OperationType.INSERT)
     public Result<Bill> generateBill(
             @Parameter(description = "会话ID") @PathVariable Long sessionId) {
         Bill bill = billService.generateBillBySession(sessionId);
@@ -63,7 +63,7 @@ public class BillController {
 
     @Operation(summary = "支付账单")
     @PostMapping("/{id}/pay")
-    @Log(title = "支付账单", businessType = "UPDATE")
+    @Log(value = "支付账单", type = Log.OperationType.UPDATE)
     public Result<Boolean> payBill(
             @Parameter(description = "账单ID") @PathVariable Long id,
             @Parameter(description = "支付方式") @RequestParam String paymentMethod,
@@ -74,7 +74,7 @@ public class BillController {
 
     @Operation(summary = "取消账单")
     @PostMapping("/{id}/cancel")
-    @Log(title = "取消账单", businessType = "UPDATE")
+    @Log(value = "取消账单", type = Log.OperationType.UPDATE)
     public Result<Boolean> cancelBill(
             @Parameter(description = "账单ID") @PathVariable Long id) {
         Boolean result = billService.cancelBill(id);
@@ -83,7 +83,7 @@ public class BillController {
 
     @Operation(summary = "退款")
     @PostMapping("/{id}/refund")
-    @Log(title = "退款", businessType = "UPDATE")
+    @Log(value = "退款", type = Log.OperationType.UPDATE)
     public Result<Boolean> refundBill(
             @Parameter(description = "账单ID") @PathVariable Long id) {
         Boolean result = billService.refundBill(id);

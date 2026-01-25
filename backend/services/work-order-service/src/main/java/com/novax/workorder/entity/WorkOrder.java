@@ -1,7 +1,7 @@
 package com.novax.workorder.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.novax.common.mybatis.entity.BaseEntity;
+import com.novax.common.mybatis.base.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

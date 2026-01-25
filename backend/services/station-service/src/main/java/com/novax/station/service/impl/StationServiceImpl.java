@@ -8,7 +8,7 @@ import com.novax.common.core.exception.BusinessException;
 import com.novax.common.core.page.PageQuery;
 import com.novax.common.core.page.PageResult;
 import com.novax.common.core.result.ResultCode;
-import com.novax.common.core.utils.IdGenerator;
+import com.novax.common.core.util.IdGenerator;
 import com.novax.station.domain.dto.NearbyStationQueryDTO;
 import com.novax.station.domain.dto.StationCreateDTO;
 import com.novax.station.domain.dto.StationUpdateDTO;
@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -69,7 +70,7 @@ public class StationServiceImpl implements StationService {
     public StationVO getStation(Long stationId) {
         Station station = stationMapper.selectById(stationId);
         if (station == null) {
-            throw new BusinessException(ResultCode.DATA_NOT_FOUND, "充电站不存在");
+            throw new BusinessException(ResultCode.STATION_NOT_FOUND, "充电站不存在");
         }
         return convertToVO(station);
     }
@@ -80,7 +81,7 @@ public class StationServiceImpl implements StationService {
         wrapper.eq(Station::getStationCode, stationCode);
         Station station = stationMapper.selectOne(wrapper);
         if (station == null) {
-            throw new BusinessException(ResultCode.DATA_NOT_FOUND, "充电站不存在");
+            throw new BusinessException(ResultCode.STATION_NOT_FOUND, "充电站不存在");
         }
         return convertToVO(station);
     }
@@ -92,7 +93,7 @@ public class StationServiceImpl implements StationService {
 
         Station station = stationMapper.selectById(stationId);
         if (station == null) {
-            throw new BusinessException(ResultCode.DATA_NOT_FOUND, "充电站不存在");
+            throw new BusinessException(ResultCode.STATION_NOT_FOUND, "充电站不存在");
         }
 
         // 更新非空字段
@@ -109,12 +110,12 @@ public class StationServiceImpl implements StationService {
 
         Station station = stationMapper.selectById(stationId);
         if (station == null) {
-            throw new BusinessException(ResultCode.DATA_NOT_FOUND, "充电站不存在");
+            throw new BusinessException(ResultCode.STATION_NOT_FOUND, "充电站不存在");
         }
 
         // 检查是否有设备
         if (station.getTotalPiles() > 0) {
-            throw new BusinessException(ResultCode.OPERATION_FAILED, "该站点还有充电桩，无法删除");
+            throw new BusinessException(ResultCode.CONFLICT, "该站点还有充电桩，无法删除");
         }
 
         stationMapper.deleteById(stationId);
@@ -130,7 +131,7 @@ public class StationServiceImpl implements StationService {
                 .map(this::convertToVO)
                 .collect(Collectors.toList());
 
-        return PageResult.of(stationPage.getTotal(), voList);
+        return PageResult.of(pageQuery.getPage(), pageQuery.getPageSize(), stationPage.getTotal(), voList);
     }
 
     @Override
@@ -143,8 +144,7 @@ public class StationServiceImpl implements StationService {
                 dto.getLatitude(),
                 dto.getRadius(),
                 dto.getStationType(),
-                dto.getOnlyAvailable()
-        );
+                dto.getOnlyAvailable());
 
         return stations.stream()
                 .map(station -> {
@@ -152,8 +152,7 @@ public class StationServiceImpl implements StationService {
                     // 计算距离（这里简化处理，实际应该从SQL查询结果中获取）
                     BigDecimal distance = calculateDistance(
                             dto.getLongitude(), dto.getLatitude(),
-                            station.getLongitude(), station.getLatitude()
-                    );
+                            station.getLongitude(), station.getLatitude());
                     vo.setDistance(distance);
                     return vo;
                 })
@@ -167,7 +166,7 @@ public class StationServiceImpl implements StationService {
 
         Station station = stationMapper.selectById(stationId);
         if (station == null) {
-            throw new BusinessException(ResultCode.DATA_NOT_FOUND, "充电站不存在");
+            throw new BusinessException(ResultCode.STATION_NOT_FOUND, "充电站不存在");
         }
 
         station.setStationStatus(status);
@@ -183,7 +182,7 @@ public class StationServiceImpl implements StationService {
         // 这里仅作为示例
         Station station = stationMapper.selectById(stationId);
         if (station == null) {
-            throw new BusinessException(ResultCode.DATA_NOT_FOUND, "充电站不存在");
+            throw new BusinessException(ResultCode.STATION_NOT_FOUND, "充电站不存在");
         }
 
         // 模拟统计（实际应该通过Feign调用设备服务）
@@ -196,7 +195,7 @@ public class StationServiceImpl implements StationService {
      */
     private String generateStationCode() {
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        long seq = IdGenerator.nextId() % 10000;
+        long seq = Math.abs(IdGenerator.generateId() % 10000);
         return String.format("ST%s%04d", date, seq);
     }
 
@@ -222,7 +221,7 @@ public class StationServiceImpl implements StationService {
      * @return 距离（公里）
      */
     private BigDecimal calculateDistance(BigDecimal lon1, BigDecimal lat1,
-                                        BigDecimal lon2, BigDecimal lat2) {
+            BigDecimal lon2, BigDecimal lat2) {
         double earthRadius = 6371; // 地球半径（公里）
 
         double dLat = Math.toRadians(lat2.doubleValue() - lat1.doubleValue());
@@ -230,12 +229,12 @@ public class StationServiceImpl implements StationService {
 
         double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
                 + Math.cos(Math.toRadians(lat1.doubleValue()))
-                * Math.cos(Math.toRadians(lat2.doubleValue()))
-                * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                        * Math.cos(Math.toRadians(lat2.doubleValue()))
+                        * Math.sin(dLon / 2) * Math.sin(dLon / 2);
 
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         double distance = earthRadius * c;
 
-        return BigDecimal.valueOf(distance).setScale(2, BigDecimal.ROUND_HALF_UP);
+        return BigDecimal.valueOf(distance).setScale(2, RoundingMode.HALF_UP);
     }
 }

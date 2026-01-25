@@ -1,6 +1,6 @@
 package com.novax.station.controller;
 
-import com.novax.common.core.domain.Result;
+import com.novax.common.core.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;

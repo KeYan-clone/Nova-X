@@ -30,7 +30,7 @@ public class PaymentController {
 
     @Operation(summary = "创建支付")
     @PostMapping("/create")
-    @Log(title = "创建支付", businessType = "INSERT")
+    @Log(value = "创建支付", type = Log.OperationType.INSERT)
     public Result<PaymentResultVO> createPayment(@Valid @RequestBody PaymentCreateDTO createDTO) {
         PaymentResultVO result = paymentService.createPayment(createDTO);
         return Result.success(result);
@@ -46,7 +46,7 @@ public class PaymentController {
 
     @Operation(summary = "关闭支付")
     @PostMapping("/{paymentNo}/close")
-    @Log(title = "关闭支付", businessType = "UPDATE")
+    @Log(value = "关闭支付", type = Log.OperationType.UPDATE)
     public Result<Boolean> closePayment(
             @Parameter(description = "支付单号") @PathVariable String paymentNo) {
         Boolean result = paymentService.closePayment(paymentNo);
@@ -55,7 +55,7 @@ public class PaymentController {
 
     @Operation(summary = "申请退款")
     @PostMapping("/refund")
-    @Log(title = "申请退款", businessType = "INSERT")
+    @Log(value = "申请退款", type = Log.OperationType.INSERT)
     public Result<Boolean> applyRefund(@Valid @RequestBody RefundApplyDTO applyDTO) {
         Boolean result = paymentService.applyRefund(applyDTO);
         return Result.success(result);

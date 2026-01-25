@@ -1,12 +1,12 @@
 package com.novax.data.search.service;
 
-import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.json.JsonData;
 import com.novax.data.search.document.SessionSearchDocument;
 import com.novax.data.search.vo.SessionSearchVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHit;
@@ -19,6 +19,7 @@ import java.util.List;
 
 /**
  * 充电会话搜索服务
+ * 使用 Elasticsearch 8.x 新版 API
  */
 @Slf4j
 @Service
@@ -34,21 +35,20 @@ public class SessionSearchService {
         log.info("搜索用户充电会话: userId={}", userId);
 
         try {
-            Query userQuery = Query.of(q -> q
-                .term(t -> t
-                    .field("userId")
-                    .value(userId)
-                )
-            );
-
             NativeQuery searchQuery = NativeQuery.builder()
-                .withQuery(userQuery)
-                .withSort(Sort.by(Sort.Direction.DESC, "startTime"))
-                .withPageable(PageRequest.of(pageNum - 1, pageSize))
-                .build();
+                    .withQuery(q -> q
+                            .term(t -> t
+                                    .field("userId")
+                                    .value(userId)))
+                    .withSort(s -> s
+                            .field(f -> f
+                                    .field("startTime")
+                                    .order(SortOrder.Desc)))
+                    .withPageable(PageRequest.of(pageNum - 1, pageSize))
+                    .build();
 
-            SearchHits<SessionSearchDocument> searchHits =
-                elasticsearchOperations.search(searchQuery, SessionSearchDocument.class);
+            SearchHits<SessionSearchDocument> searchHits = elasticsearchOperations.search(searchQuery,
+                    SessionSearchDocument.class);
 
             return convertToVO(searchHits);
 
@@ -65,19 +65,15 @@ public class SessionSearchService {
         log.info("搜索充电会话: sessionId={}", sessionId);
 
         try {
-            Query sessionQuery = Query.of(q -> q
-                .term(t -> t
-                    .field("sessionId")
-                    .value(sessionId)
-                )
-            );
-
             NativeQuery searchQuery = NativeQuery.builder()
-                .withQuery(sessionQuery)
-                .build();
+                    .withQuery(q -> q
+                            .term(t -> t
+                                    .field("sessionId")
+                                    .value(sessionId)))
+                    .build();
 
-            SearchHits<SessionSearchDocument> searchHits =
-                elasticsearchOperations.search(searchQuery, SessionSearchDocument.class);
+            SearchHits<SessionSearchDocument> searchHits = elasticsearchOperations.search(searchQuery,
+                    SessionSearchDocument.class);
 
             List<SessionSearchVO> results = convertToVO(searchHits);
             return results.isEmpty() ? null : results.get(0);
@@ -92,44 +88,37 @@ public class SessionSearchService {
      * 根据充电站ID搜索会话
      */
     public List<SessionSearchVO> searchByStationId(Long stationId, String status,
-                                                    int pageNum, int pageSize) {
+            int pageNum, int pageSize) {
         log.info("搜索充电站会话: stationId={}, status={}", stationId, status);
 
         try {
-            Query stationQuery = Query.of(q -> q
-                .term(t -> t
-                    .field("stationId")
-                    .value(stationId)
-                )
-            );
-
-            Query finalQuery;
-            if (status != null && !status.isEmpty()) {
-                Query statusQuery = Query.of(q -> q
-                    .term(t -> t
-                        .field("status")
-                        .value(status)
-                    )
-                );
-
-                finalQuery = Query.of(q -> q
-                    .bool(b -> b
-                        .must(stationQuery)
-                        .filter(statusQuery)
-                    )
-                );
-            } else {
-                finalQuery = stationQuery;
-            }
-
             NativeQuery searchQuery = NativeQuery.builder()
-                .withQuery(finalQuery)
-                .withSort(Sort.by(Sort.Direction.DESC, "startTime"))
-                .withPageable(PageRequest.of(pageNum - 1, pageSize))
-                .build();
+                    .withQuery(q -> {
+                        if (status != null && !status.isEmpty()) {
+                            return q.bool(b -> b
+                                    .must(m -> m
+                                            .term(t -> t
+                                                    .field("stationId")
+                                                    .value(stationId)))
+                                    .filter(f -> f
+                                            .term(t -> t
+                                                    .field("status")
+                                                    .value(status))));
+                        } else {
+                            return q.term(t -> t
+                                    .field("stationId")
+                                    .value(stationId));
+                        }
+                    })
+                    .withSort(s -> s
+                            .field(f -> f
+                                    .field("startTime")
+                                    .order(SortOrder.Desc)))
+                    .withPageable(PageRequest.of(pageNum - 1, pageSize))
+                    .build();
 
-            SearchHits<SessionSearchDocument> searchHits =
-                elasticsearchOperations.search(searchQuery, SessionSearchDocument.class);
+            SearchHits<SessionSearchDocument> searchHits = elasticsearchOperations.search(searchQuery,
+                    SessionSearchDocument.class);
 
             return convertToVO(searchHits);
 
@@ -143,26 +132,26 @@ public class SessionSearchService {
      * 按时间范围搜索
      */
     public List<SessionSearchVO> searchByTimeRange(LocalDateTime startTime, LocalDateTime endTime,
-                                                    int pageNum, int pageSize) {
+            int pageNum, int pageSize) {
         log.info("按时间范围搜索: {} 至 {}", startTime, endTime);
 
         try {
-            Query timeQuery = Query.of(q -> q
-                .range(r -> r
-                    .field("startTime")
-                    .gte(co.elastic.clients.json.JsonData.of(startTime.toString()))
-                    .lte(co.elastic.clients.json.JsonData.of(endTime.toString()))
-                )
-            );
-
             NativeQuery searchQuery = NativeQuery.builder()
-                .withQuery(timeQuery)
-                .withSort(Sort.by(Sort.Direction.DESC, "startTime"))
-                .withPageable(PageRequest.of(pageNum - 1, pageSize))
-                .build();
+                    .withQuery(q -> q
+                            .range(r -> r
+                                    .date(d -> d 
+                                            .field("startTime")
+                                            .gte(startTime.toString())
+                                            .lte(endTime.toString()))))
+                    .withSort(s -> s
+                            .field(f -> f
+                                    .field("startTime")
+                                    .order(SortOrder.Desc)))
+                    .withPageable(PageRequest.of(pageNum - 1, pageSize))
+                    .build();
 
-            SearchHits<SessionSearchDocument> searchHits =
-                elasticsearchOperations.search(searchQuery, SessionSearchDocument.class);
+            SearchHits<SessionSearchDocument> searchHits = elasticsearchOperations.search(searchQuery,
+                    SessionSearchDocument.class);
 
             return convertToVO(searchHits);
 

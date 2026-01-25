@@ -192,9 +192,9 @@ public class BillServiceImpl implements BillService {
                 .eq(queryDTO.getUserId() != null, Bill::getUserId, queryDTO.getUserId())
                 .eq(queryDTO.getStationId() != null, Bill::getStationId, queryDTO.getStationId())
                 .eq(queryDTO.getBillStatus() != null, Bill::getBillStatus, queryDTO.getBillStatus())
-                .ge(queryDTO.getStartTime() != null, Bill::getCreateTime, queryDTO.getStartTime())
-                .le(queryDTO.getEndTime() != null, Bill::getCreateTime, queryDTO.getEndTime())
-                .orderByDesc(Bill::getCreateTime);
+                .ge(queryDTO.getStartTime() != null, Bill::getStartTime, queryDTO.getStartTime())
+                .le(queryDTO.getEndTime() != null, Bill::getEndTime, queryDTO.getEndTime())
+                .orderByDesc(Bill::getStartTime);
 
         Page<Bill> billPage = billMapper.selectPage(page, wrapper);
 
