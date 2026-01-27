@@ -4,6 +4,9 @@ import com.novax.common.core.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * 会员服务客户端
+ */
 @FeignClient(name = "member-service", path = "/members")
 public interface MemberClient {
 
@@ -15,4 +18,7 @@ public interface MemberClient {
 
     @GetMapping("/balance/{userId}")
     Result<?> getBalance(@PathVariable Long userId);
+
+    @PostMapping("/{userId}/recharge")
+    Result<?> recharge(@PathVariable Long userId, @RequestBody Object dto);
 }

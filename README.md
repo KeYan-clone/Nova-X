@@ -47,7 +47,7 @@ Nova-X (星云) 是一个企业级充电桩管理平台，通过数字化手段�
 ├────────────────────┼────────────────────┼─────────────────────────┤
 │ Auth Service ✅    │ Account Service ✅ │ Algorithm Service ⏳    │
 │ Monitor Service ⏳ │ Station Service ✅ │ Search Service ⏳       │
-│ Log Service ⏳     │ Device Service ✅  │ Data Sync Service ⏳    │
+│                    │ Device Service ✅  │ Data Sync Service ⏳    │
 │                    │ Pricing Service ✅ │                         │
 │                    │ Session Service ✅ │                         │
 │                    │ Billing Service ⏳ │                         │
@@ -184,79 +184,6 @@ Nova-X/
 
 ## 📊 项目进度
 
-### ✅ 已完成 (Phase 1)
-
-**基础设施层** (2/2)
-- ✅ **auth-service** - 认证授权服务
-  - 密码登录 + 短信登录
-  - JWT双Token机制
-  - 图形验证码 + 短信验证码
-  - 登录日志审计
-
-- ✅ **gateway-service** - API网关服务
-  - 15个微服务路由配置
-  - JWT认证过滤器
-  - 分布式链路追踪(TraceId)
-  - Sentinel限流熔断
-  - 全局跨域CORS
-  - 统一异常处理
-
-**公共模块层** (7/7)
-- ✅ common-core - 统一响应、异常处理、工具类
-- ✅ common-security - JWT、加密解密、签名验证
-- ✅ common-mybatis - MyBatis Plus配置、BaseEntity
-- ✅ common-redis - Redis工具、分布式锁
-- ✅ common-kafka - Kafka生产者
-- ✅ common-log - 日志切面、TraceId
-- ✅ common-swagger - OpenAPI 3.0、Knife4j
-
-**核心业务服务** (5/16 - 核心完成)
-- ✅ **account-service** - 账户管理服务
-  - 用户注册/查询/更新
-  - 实名认证管理
-  - 角色权限管理
-
-- ✅ **station-service** - 充电站管理服务
-  - 充电站CRUD
-  - **地理位置搜索** (Haversine公式)
-  - 附近站点查询
-  - 站点状态管理
-
-- ✅ **device-service** - 设备管理服务
-  - 充电桩管理 (25+字段)
-  - 充电枪管理 (支持多枪)
-  - 设备状态监控 (5种状态)
-  - 设备上线/离线管理
-
-- ✅ **pricing-service** - 定价服务
-  - 定价模板管理
-  - **分时电价策略** (尖峰/平/谷)
-  - 电费计算引擎
-
-- ✅ **session-service** - 充电会话服务
-  - 会话管理 (启动/停止)
-  - 充电数据记录
-  - 会话状态跟踪
-
-### ⏳ 规划中 (Phase 2)
-- ⏳ billing-service - 计费服务
-- ⏳ payment-service - 支付服务
-- ⏳ member-service - 会员服务
-- ⏳ notification-service - 通知服务
-- ⏳ work-order-service - 工单服务
-- ⏳ scheduling-service - 调度服务
-- ⏳ 其他业务服务...
-
-### 📈 统计数据
-| 指标       | 数量     | 状态          |
-| ---------- | -------- | ------------- |
-| 微服务总数 | 18个规划 | 7个核心已完成 |
-| Java类     | 100+     | ✅             |
-| 代码行数   | 10,000+  | ✅             |
-| REST接口   | 50+      | ✅             |
-| 数据库表   | 20+      | ✅             |
-| SQL脚本    | 10+      | ✅             |
-
 ## 🔥 核心特性详解
 
 ### 1. 地理位置搜索 🌍
@@ -357,8 +284,7 @@ ORDER BY distance
 ### 🌐 基础设施层
 - **gateway-service** - API 网关（入口路由、鉴权、限流、灰度、协议转换）
 - **auth-service** - 认证授权中心（Token 签发、OAuth2 服务端、用户认证、会话管理）
-- **monitor-service** - 指标监控告警（Prometheus 采集、实时告警、性能指标、健康检查）
-- **log-service** - 日志聚合检索（ELK 聚合、日志检索、链路追踪、事后分析）
+- **monitor-service** - 指标监控告警（Prometheus 采集、实时告警、性能指标、健康检查、日志聚合与链路追踪）
 
 ### 🎯 BFF 层（Backend For Frontend）
 按终端和角色拆分，提供差异化的接口聚合：
@@ -726,14 +652,62 @@ kubectl get svc -n nova-x
 
 ## 监控与运维
 
-### 监控指标
+### Monitor Service - 统一可观测性平台
+
+**monitor-service** 是 Nova-X 的统一可观测性平台，整合了指标监控、日志聚合和链路追踪三大核心功能，基于业界成熟的开源方案构建。
+
+#### 核心功能
+
+**1. 指标监控（Metrics）**
+- 基于 Prometheus + Grafana
+- 实时采集应用、系统、业务指标
+- 支持自定义指标和告警规则
+- 提供多维度可视化仪表盘
+
+**2. 日志聚合（Logging）**
+- 基于 ELK Stack (Elasticsearch + Logstash + Kibana)
+- 集中式日志存储与检索
+- 支持全文搜索和复杂查询
+- 提供日志分析和审计功能
+
+**3. 链路追踪（Tracing）**
+- 基于 TraceId 的分布式追踪
+- 跨服务调用链路可视化
+- 性能瓶颈分析与优化
+- 异常定位与问题排查
+
+#### 数据流架构
+```
+应用层（各微服务）
+  ├─ common-log: 生成 TraceId、记录日志
+  ├─ Micrometer: 暴露 Prometheus 指标
+  └─ 本地日志文件: /var/log/nova-x/
+           ↓
+采集层
+  ├─ Prometheus: 定时拉取指标数据
+  └─ Filebeat: 采集本地日志文件
+           ↓
+传输层
+  └─ Kafka/Logstash: 缓冲和路由
+           ↓
+存储层
+  ├─ Prometheus TSDB: 时序指标存储
+  └─ Elasticsearch: 日志全文索引
+           ↓
+展示层（monitor-service 提供）
+  ├─ Grafana: 指标可视化与告警
+  ├─ Kibana: 日志检索与分析
+  └─ API: 对外提供查询接口
+```
+
+#### 监控指标
 - **系统指标** - CPU、内存、磁盘、网络
 - **JVM 指标** - 堆内存、GC 次数、线程数
 - **应用指标** - QPS/TPS、响应时间、错误率
 - **业务指标** - 充电订单数、营收、设备在线率
 - **基础设施** - 数据库连接池、缓存命中率、MQ 积压
 
-### 日志规范
+#### 日志规范
 ```
 应用日志：/var/log/nova-x/{service}/app.log
 访问日志：/var/log/nova-x/{service}/access.log

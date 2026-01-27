@@ -83,8 +83,7 @@
         <!-- Infrastructure Services -->
         <module>infrastructure/gateway-service</module>
         <module>infrastructure/auth-service</module>
-        <!-- <module>infrastructure/monitor-service</module> -->
-        <!-- <module>infrastructure/log-service</module> -->
+        <module>infrastructure/monitor-service</module>
 
         <!-- Core Business Services -->
         <module>services/account-service</module>
